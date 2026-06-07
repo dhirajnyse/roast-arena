@@ -1,0 +1,51 @@
+<svg width="1200" height="900" viewBox="0 0 1200 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Roast Arena logo</title>
+  <desc id="desc">A bright 3D-style game logo with a flame arena badge and chunky Roast Arena lettering.</desc>
+  <defs>
+    <linearGradient id="badge" x1="177" y1="129" x2="1009" y2="826" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18D8FF"/>
+      <stop offset="0.33" stop-color="#B6FF3B"/>
+      <stop offset="0.68" stop-color="#FF7A1A"/>
+      <stop offset="1" stop-color="#FF3FB4"/>
+    </linearGradient>
+    <linearGradient id="textTop" x1="236" y1="262" x2="962" y2="595" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF7DF"/>
+      <stop offset="0.24" stop-color="#FFE66B"/>
+      <stop offset="0.56" stop-color="#FF7A1A"/>
+      <stop offset="1" stop-color="#FF3FB4"/>
+    </linearGradient>
+    <linearGradient id="textBottom" x1="300" y1="544" x2="900" y2="739" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#18D8FF"/>
+      <stop offset="0.48" stop-color="#B6FF3B"/>
+      <stop offset="1" stop-color="#FFF7DF"/>
+    </linearGradient>
+    <filter id="shadow" x="64" y="50" width="1072" height="792" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="22" flood-color="#101426" flood-opacity="0.34"/>
+    </filter>
+    <filter id="pop" x="0" y="0" width="1200" height="900" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="0" flood-color="#101426" flood-opacity="1"/>
+      <feDropShadow dx="0" dy="26" stdDeviation="18" flood-color="#101426" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="900" rx="96" fill="#101426"/>
+  <circle cx="100" cy="142" r="26" fill="#18D8FF"/>
+  <circle cx="1090" cy="167" r="34" fill="#B6FF3B"/>
+  <circle cx="1031" cy="770" r="22" fill="#FF3FB4"/>
+  <circle cx="154" cy="745" r="38" fill="#FF7A1A"/>
+  <g filter="url(#shadow)">
+    <path d="M600 89C759 89 898 166 977 286C1059 410 1051 570 963 687C881 796 737 838 600 838C463 838 319 796 237 687C149 570 141 410 223 286C302 166 441 89 600 89Z" fill="url(#badge)"/>
+    <path d="M600 129C741 129 864 196 934 302C1005 410 997 550 920 653C849 747 724 785 600 785C476 785 351 747 280 653C203 550 195 410 266 302C336 196 459 129 600 129Z" fill="#FFF7DF"/>
+    <path d="M600 164C724 164 832 222 893 315C955 410 949 532 881 622C819 705 710 738 600 738C490 738 381 705 319 622C251 532 245 410 307 315C368 222 476 164 600 164Z" fill="#101426"/>
+  </g>
+  <path d="M600 156C636 221 710 252 710 329C710 399 662 448 600 448C538 448 490 399 490 329C490 252 564 221 600 156Z" fill="#FF7A1A"/>
+  <path d="M600 227C622 268 667 288 667 337C667 383 637 416 600 416C563 416 533 383 533 337C533 288 578 268 600 227Z" fill="#FFE66B"/>
+  <path d="M600 286C612 310 635 321 635 350C635 376 619 394 600 394C581 394 565 376 565 350C565 321 588 310 600 286Z" fill="#FFF7DF"/>
+  <g filter="url(#pop)">
+    <text x="600" y="516" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="158" font-weight="900" letter-spacing="0" fill="#101426" stroke="#101426" stroke-width="34" paint-order="stroke fill">ROAST</text>
+    <text x="600" y="516" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="158" font-weight="900" letter-spacing="0" fill="url(#textTop)" stroke="#FFF7DF" stroke-width="10" paint-order="stroke fill">ROAST</text>
+    <text x="600" y="665" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="132" font-weight="900" letter-spacing="0" fill="#101426" stroke="#101426" stroke-width="30" paint-order="stroke fill">ARENA</text>
+    <text x="600" y="665" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="132" font-weight="900" letter-spacing="0" fill="url(#textBottom)" stroke="#FFF7DF" stroke-width="9" paint-order="stroke fill">ARENA</text>
+  </g>
+  <path d="M291 718C393 773 806 773 909 718" stroke="#FFF7DF" stroke-width="18" stroke-linecap="round"/>
+  <path d="M335 736C426 776 774 776 865 736" stroke="#18D8FF" stroke-width="10" stroke-linecap="round"/>
+</svg>
