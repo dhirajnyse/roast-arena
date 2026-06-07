@@ -18,6 +18,7 @@ const judges = [
     heat: 46,
     intro: "Please keep all emotional damage workplace appropriate.",
     flavor: "Corporate, nervous, passive-aggressive.",
+    reaction: "Policy violation detected. Comedy value rising.",
     verdicts: [
       "After careful review, this answer is disruptive, emotionally accurate, and unfortunately hilarious.",
       "The committee has concerns, but the laugh metrics are undeniable.",
@@ -30,6 +31,7 @@ const judges = [
     heat: 78,
     intro: "The joke has no moat, but the disrespect scales beautifully.",
     flavor: "Cold, fast, investor-brained.",
+    reaction: "Investor confidence in this insult is irrationally high.",
     verdicts: [
       "This answer has product-market fit in the humiliation economy.",
       "No revenue model, but impressive emotional margins.",
@@ -42,6 +44,7 @@ const judges = [
     heat: 62,
     intro: "Beta, I am smiling because crying would ruin my eyeliner.",
     flavor: "Loving, devastating, oddly proud.",
+    reaction: "Affection remains. Respect is under review.",
     verdicts: [
       "I expected better, but unfortunately this made me laugh.",
       "So much shame, delivered with excellent timing.",
@@ -54,6 +57,7 @@ const judges = [
     heat: 69,
     intro: "The court shall laugh or someone shall explain why.",
     flavor: "Royal, loud, nonsense-powered.",
+    reaction: "The crowd is rowdy and the crown is entertained.",
     verdicts: [
       "The court has laughed, and this answer receives three imaginary provinces.",
       "Summon the scoreboard. A champion has insulted with honor.",
@@ -86,6 +90,7 @@ const state = {
   submissions: [],
   winner: null,
   verdict: "",
+  history: [],
   players: [
     { id: "you", name: "You", score: 0, bot: false },
     { id: "maya", name: "Maya", score: 0, bot: true },
@@ -93,6 +98,8 @@ const state = {
     { id: "nora", name: "Nora", score: 0, bot: true }
   ]
 };
+
+let timerId = null;
 
 function escapeHtml(value) {
   return String(value)
@@ -120,17 +127,42 @@ function randomFrom(items) {
 }
 
 function setScreen(screen) {
+  stopTimer();
   state.screen = screen;
   render();
 }
 
 function resetGame() {
+  stopTimer();
   state.round = 1;
   state.promptIndex = 0;
   state.submissions = [];
   state.winner = null;
   state.verdict = "";
+  state.history = [];
   state.players = state.players.map((player) => ({ ...player, score: 0 }));
+}
+
+function stopTimer() {
+  if (!timerId) return;
+  clearInterval(timerId);
+  timerId = null;
+}
+
+function startRoundTimer() {
+  stopTimer();
+  timerId = setInterval(() => {
+    if (state.screen !== "submit") {
+      stopTimer();
+      return;
+    }
+    state.timeLeft = Math.max(0, state.timeLeft - 1);
+    const timer = document.querySelector("#roundTimer");
+    const fill = document.querySelector("#timerFill");
+    if (timer) timer.textContent = state.timeLeft;
+    if (fill) fill.style.width = `${Math.max(0, (state.timeLeft / 45) * 100)}%`;
+    if (state.timeLeft === 0) submitAnswer(true);
+  }, 1000);
 }
 
 function headerMarkup() {
@@ -184,6 +216,22 @@ function scoreboardMarkup() {
         </li>
       `).join("")}
     </ol>
+  `;
+}
+
+function historyMarkup() {
+  if (!state.history.length) {
+    return `<p class="empty-history">No rounds claimed yet.</p>`;
+  }
+  return `
+    <div class="history-list">
+      ${state.history.slice(-3).map((item) => `
+        <div class="history-item">
+          <span>R${item.round}</span>
+          <strong>${escapeHtml(item.playerName)}</strong>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -267,6 +315,7 @@ function renderLobby() {
         <div class="phase-panel">
           <p class="kicker">Lobby</p>
           <h2>Share the room code</h2>
+          <p class="hero-copy">This is the party-room prototype: bots stand in for friends so the full loop can be tested instantly.</p>
           <div class="lobby-code">${escapeHtml(state.roomCode)}</div>
           <div class="stats-grid">
             <div class="stat"><strong>${state.maxRounds}</strong><span>Rounds</span></div>
@@ -285,6 +334,7 @@ function renderLobby() {
 }
 
 function renderSubmit() {
+  const judge = currentJudge();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Scoreboard">
@@ -304,10 +354,11 @@ function renderSubmit() {
             <div>
               <p class="kicker">Your Turn</p>
               <h2>Drop your roast</h2>
+              <p class="judge-reaction">${escapeHtml(judge.reaction)}</p>
             </div>
-            <div class="timer">${state.timeLeft}</div>
+            <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
-          <div class="progress-track"><span class="progress-fill"></span></div>
+          <div class="progress-track"><span class="progress-fill" id="timerFill"></span></div>
           <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="Make it funny, not felony."></textarea>
           <div class="input-meta">
             <span id="charCount">0/160</span>
@@ -333,6 +384,10 @@ function renderVote() {
           <span>Vote</span>
         </div>
         ${scoreboardMarkup()}
+        <div class="mini-panel history-panel">
+          <h3>Round History</h3>
+          ${historyMarkup()}
+        </div>
       </aside>
       <section class="stage">
         <article class="prompt-card">
@@ -366,9 +421,14 @@ function renderVerdict() {
           <span>Verdict</span>
         </div>
         ${scoreboardMarkup()}
+        <div class="mini-panel history-panel">
+          <h3>Round History</h3>
+          ${historyMarkup()}
+        </div>
       </aside>
       <section class="stage">
-        <div class="phase-panel">
+        <div class="phase-panel verdict-panel">
+          <div class="burst" aria-hidden="true"></div>
           <p class="kicker">Judge Verdict</p>
           <h2 class="winner-line">${escapeHtml(winner.playerName)} takes the round</h2>
           <div class="verdict">
@@ -398,12 +458,26 @@ function renderScoreboardScreen() {
           <span>Done</span>
         </div>
         ${scoreboardMarkup()}
+        <div class="mini-panel history-panel">
+          <h3>Round History</h3>
+          ${historyMarkup()}
+        </div>
       </aside>
       <section class="stage">
-        <div class="phase-panel">
+        <div class="phase-panel champion-panel">
+          <div class="confetti" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
           <p class="kicker">Champion</p>
           <h2 class="winner-line">${escapeHtml(leader.name)} wins Roast Arena</h2>
           <p class="hero-copy">The arena has spoken. The jokes were questionable. The scoreboard was legally binding.</p>
+          <div class="champion-card">
+            <span class="avatar champion-avatar">${escapeHtml(initials(leader.name))}</span>
+            <div>
+              <span class="meter-label">Champion Score</span>
+              <strong>${leader.score} points</strong>
+            </div>
+          </div>
           <div class="controls">
             <button class="button hot" id="newGame">Run It Back</button>
             <button class="button secondary" id="newRoom">New Room Setup</button>
@@ -425,6 +499,7 @@ function render() {
   };
   app.innerHTML = screens[state.screen]();
   bindEvents();
+  if (state.screen === "submit") startRoundTimer();
 }
 
 function bindEvents() {
@@ -517,6 +592,7 @@ function buildSubmissions(answer) {
 }
 
 function submitAnswer(forceBotAnswer = false) {
+  stopTimer();
   const input = document.querySelector("#answerInput");
   const answer = forceBotAnswer ? "" : input.value.trim();
   state.submissions = buildSubmissions(answer);
@@ -529,6 +605,11 @@ function chooseWinner(index) {
   if (player) player.score += 3;
   state.winner = winner;
   state.verdict = randomFrom(currentJudge().verdicts);
+  state.history.push({
+    round: state.round,
+    playerName: winner.playerName,
+    prompt: activePrompt()
+  });
   setScreen("verdict");
 }
 
