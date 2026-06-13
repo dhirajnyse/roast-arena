@@ -33,7 +33,8 @@ Current prototype flow:
 - Mode rules for Classic, Duel, and Court
 - Host-controlled round count and timer length
 - Judge selection
-- Lobby
+- Lobby with copyable invite text
+- Named guest roster controls for simulated rooms
 - Prompt submission
 - Empty-answer guard and chaos answer assist
 - Anonymous voting
@@ -49,6 +50,8 @@ Current prototype flow:
 - Pick a global room profile.
 - Pick a judge personality.
 - Pick a room mode with its own prompt pack, timer, and scoring.
+- Copy a calm room invite before the game starts.
+- Add named guests to shape the party roster.
 - Play short prompt rounds.
 - Submit anonymous answers.
 - Vote.

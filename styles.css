@@ -349,10 +349,34 @@ h2 {
   font-weight: 950;
 }
 
-.player-meta span:last-child {
+.player-meta > span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.player-name-wrap {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.player-name-wrap > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-tag {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #247b86;
+  background: rgba(111, 214, 232, 0.18);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
 }
 
 .score-row strong {
@@ -575,6 +599,43 @@ h2 {
   margin-bottom: 0;
 }
 
+.guest-form {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.guest-form label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.guest-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.guest-row input {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.guest-row .button {
+  min-height: 44px;
+}
+
 .field input,
 .field select {
   min-height: 48px;
@@ -672,6 +733,46 @@ h2 {
   background: rgba(255, 255, 255, 0.76);
   font-size: clamp(2.1rem, 8vw, 5rem);
   font-weight: 950;
+}
+
+.invite-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.invite-card div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.invite-card span {
+  color: #247b86;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.invite-card strong {
+  color: var(--ink);
+}
+
+.invite-card pre {
+  max-height: 132px;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(21, 34, 54, 0.08);
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.72);
+  font: 0.82rem/1.45 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  white-space: pre-wrap;
 }
 
 .stat {
@@ -1085,11 +1186,16 @@ h2 {
 
   .home-layout,
   .identity-grid,
+  .guest-row,
   .recipe-grid,
   .tune-grid,
   .rules-grid,
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .invite-card div {
+    display: grid;
   }
 
   .judge-row,

@@ -481,7 +481,10 @@ function scoreboardMarkup() {
         <li class="score-row ${index === 0 && player.score > 0 ? "leader" : ""}">
           <span class="player-meta">
             <span class="avatar">${escapeHtml(initials(player.name))}</span>
-            <span>${escapeHtml(player.name)}</span>
+            <span class="player-name-wrap">
+              <span>${escapeHtml(player.name)}</span>
+              ${player.invited ? `<span class="player-tag">Guest</span>` : ""}
+            </span>
           </span>
           <strong>${player.score}</strong>
         </li>
@@ -547,13 +550,34 @@ function buildRecapText() {
   ].join("\n");
 }
 
+function buildInviteText() {
+  const recipe = currentRecipe();
+  return [
+    "Roast Arena invite",
+    `Room: ${state.roomCode}`,
+    `Recipe: ${recipe ? recipe.label : "Custom"}`,
+    `Vibe: ${currentVibe().label}`,
+    `World room: ${currentWorldRoom().label}`,
+    `Comedy guard: ${currentComedyGuard().label}`,
+    `Rounds: ${state.maxRounds} x ${state.timeLimit}s`,
+    "",
+    "Bring one clever answer. Keep it funny, not cruel."
+  ].join("\n");
+}
+
 function setShareStatus(message) {
   state.notice = message;
   const status = document.querySelector("#shareStatus");
   if (status) status.textContent = message;
 }
 
-function fallbackCopy(text) {
+function setInviteStatus(message) {
+  state.notice = message;
+  const status = document.querySelector("#inviteStatus");
+  if (status) status.textContent = message;
+}
+
+function fallbackCopy(text, setStatus = setShareStatus) {
   const scratch = document.createElement("textarea");
   scratch.value = text;
   scratch.setAttribute("readonly", "");
@@ -563,9 +587,11 @@ function fallbackCopy(text) {
   scratch.select();
   try {
     const copied = document.execCommand("copy");
-    setShareStatus(copied ? "Recap copied to clipboard." : "Could not copy recap in this browser.");
+    setStatus(copied ? "Copied to clipboard." : "Could not copy in this browser.");
+    return copied;
   } catch (error) {
-    setShareStatus("Could not copy recap in this browser.");
+    setStatus("Could not copy in this browser.");
+    return false;
   } finally {
     scratch.remove();
   }
@@ -576,10 +602,21 @@ function copyRecap() {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text)
       .then(() => setShareStatus("Recap copied to clipboard."))
-      .catch(() => fallbackCopy(text));
+      .catch(() => fallbackCopy(text, setShareStatus));
     return;
   }
-  fallbackCopy(text);
+  fallbackCopy(text, setShareStatus);
+}
+
+function copyInvite() {
+  const text = buildInviteText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setInviteStatus("Invite copied."))
+      .catch(() => fallbackCopy(text, setInviteStatus));
+    return;
+  }
+  fallbackCopy(text, setInviteStatus);
 }
 
 function shellMarkup(content) {
@@ -704,6 +741,7 @@ function renderLobby() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
+  const inviteText = buildInviteText();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Players">
@@ -712,6 +750,14 @@ function renderLobby() {
           <span>${state.players.length}/8</span>
         </div>
         ${scoreboardMarkup()}
+        <form class="guest-form" id="guestForm">
+          <label for="guestName">Add guest</label>
+          <div class="guest-row">
+            <input id="guestName" maxlength="18" placeholder="Friend name">
+            <button class="button secondary" type="submit">Add</button>
+          </div>
+          <p class="field-note">Keep the room light and easy to scan.</p>
+        </form>
       </aside>
       <section class="stage">
         <div class="phase-panel">
@@ -733,8 +779,17 @@ function renderLobby() {
             <span>${escapeHtml(guard.label)} comedy guard</span>
             <p>${escapeHtml(guard.cue)}</p>
           </div>
+          <div class="invite-card" aria-label="Room invite">
+            <div>
+              <span>Invite Preview</span>
+              <strong>${escapeHtml(state.roomCode)} / ${escapeHtml(worldRoom.label)}</strong>
+            </div>
+            <pre>${escapeHtml(inviteText)}</pre>
+            <p class="share-status" id="inviteStatus">${state.notice ? escapeHtml(state.notice) : ""}</p>
+          </div>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
+            <button class="button secondary" id="copyInvite">Copy Invite</button>
             <button class="button secondary" id="addBot">Add Bot</button>
             <button class="button ghost" id="backHome">Edit Setup</button>
           </div>
@@ -997,7 +1052,9 @@ function bindEvents() {
     state.timeLeft = state.timeLimit;
     setScreen("submit");
   });
+  document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
+  document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
   document.querySelector("#chaosAnswer")?.addEventListener("click", useChaosAnswer);
   document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer(true));
@@ -1030,11 +1087,50 @@ function bindEvents() {
 }
 
 function addBot() {
-  const names = ["Rafi", "Lina", "Omar", "Pixel", "Tara", "Jay"];
-  const used = new Set(state.players.map((player) => player.name));
-  const name = names.find((candidate) => !used.has(candidate));
-  if (!name || state.players.length >= 8) return;
+  state.notice = "";
+  const names = ["Rafi", "Lina", "Omar", "Pixel", "Tara", "Jay", "Ava", "Noor"];
+  const used = new Set(state.players.map((player) => player.name.toLowerCase()));
+  const name = names.find((candidate) => !used.has(candidate.toLowerCase()));
+  if (state.players.length >= 8) {
+    setInviteStatus("Room is full at 8 players.");
+    return;
+  }
+  if (!name) {
+    setInviteStatus("All quick guests are already in.");
+    return;
+  }
   state.players.push({ id: name.toLowerCase(), name, score: 0, bot: true });
+  render();
+}
+
+function addGuest(event) {
+  event.preventDefault();
+  const input = document.querySelector("#guestName");
+  const name = input.value.trim();
+  const normalized = name.toLowerCase();
+  const used = new Set(state.players.map((player) => player.name.toLowerCase()));
+  if (!name) {
+    setInviteStatus("Add a guest name first.");
+    input.focus();
+    return;
+  }
+  if (state.players.length >= 8) {
+    setInviteStatus("Room is full at 8 players.");
+    return;
+  }
+  if (used.has(normalized)) {
+    setInviteStatus("That guest is already in the room.");
+    input.focus();
+    return;
+  }
+  state.players.push({
+    id: `guest-${Date.now()}`,
+    name,
+    score: 0,
+    bot: true,
+    invited: true
+  });
+  state.notice = `${name} added to the room.`;
   render();
 }
 
