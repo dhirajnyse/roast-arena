@@ -27,6 +27,7 @@ Current prototype flow:
 
 - Home setup
 - One-tap room recipes for faster hosting
+- Comedy Guard levels for Gentle, Balanced, and Bold rooms
 - Serene, Luminous, and Studio room vibes
 - World room profiles for global party taste
 - Mode rules for Classic, Duel, and Court
@@ -43,6 +44,7 @@ Current prototype flow:
 
 - Create or join a party room.
 - Pick a one-tap room recipe.
+- Pick a Comedy Guard level for the audience.
 - Pick a calm room vibe.
 - Pick a global room profile.
 - Pick a judge personality.

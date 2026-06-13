@@ -706,33 +706,6 @@ h2 {
   background: linear-gradient(135deg, var(--yellow), var(--lime));
 }
 
-.brief-card {
-  display: grid;
-  min-height: 48px;
-  gap: 4px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.brief-card strong,
-.brief-card span {
-  display: block;
-}
-
-.brief-card strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.brief-card span {
-  color: var(--muted);
-  font-size: 0.82rem;
-  line-height: 1.35;
-}
-
 .rule-card span,
 .rule-card strong {
   display: block;

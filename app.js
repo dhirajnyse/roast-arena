@@ -80,6 +80,27 @@ const roomVibes = {
   }
 };
 
+const comedyGuards = {
+  gentle: {
+    label: "Gentle",
+    helper: "Friendly table",
+    cue: "Keep jokes playful, warm, and easy for mixed rooms.",
+    placeholder: "Aim for clever, playful, and safe for everyone at the table."
+  },
+  balanced: {
+    label: "Balanced",
+    helper: "Party sharp",
+    cue: "Allow sharper punchlines while keeping the room comfortable.",
+    placeholder: "Make it sharp, but keep it about the prompt, not the person."
+  },
+  bold: {
+    label: "Bold",
+    helper: "High heat",
+    cue: "Bigger swings for creator rooms, still no personal cruelty.",
+    placeholder: "Go bigger, keep it witty, and leave the friendship intact."
+  }
+};
+
 const worldRooms = {
   global: {
     label: "Global",
@@ -122,6 +143,7 @@ const roomRecipes = {
     worldRoom: "global",
     mode: "classic",
     selectedJudgeId: "auntie",
+    roastLevel: "gentle",
     maxRounds: 3,
     timeLimit: 45
   },
@@ -133,6 +155,7 @@ const roomRecipes = {
     worldRoom: "singapore",
     mode: "court",
     selectedJudgeId: "hr",
+    roastLevel: "gentle",
     maxRounds: 3,
     timeLimit: 60
   },
@@ -144,6 +167,7 @@ const roomRecipes = {
     worldRoom: "newyork",
     mode: "duel",
     selectedJudgeId: "ceo",
+    roastLevel: "bold",
     maxRounds: 5,
     timeLimit: 35
   }
@@ -204,16 +228,38 @@ const judges = [
   }
 ];
 
-const botAnswers = [
-  "Uber, but for borrowing confidence from strangers.",
-  "My browser history is just market research with emotional side quests.",
-  "We regret to inform you your cardio has been seeing other people.",
-  "A gold-plated subscription box for unused planners.",
-  "This group chat has caused more chaos than an unpaid intern with admin access.",
-  "Where the waiter judges you before the food does.",
-  "How I Turned Minor Inconvenience Into A Full Personality.",
-  "Five stars. Screamed at me in Latin, toasted evenly."
-];
+const botAnswerPacks = {
+  gentle: [
+    "A subscription box for unfinished to-do lists and optimistic calendars.",
+    "My browser history is just curiosity wearing a tiny business suit.",
+    "We regret to inform you your gym bag has requested emotional distance.",
+    "A luxury planner that gently judges you from the coffee table.",
+    "This group chat has strong committee energy and no official minutes.",
+    "Where the waiter compliments your choice before forgetting the order.",
+    "How I Turned A Mild Delay Into A Personal Brand.",
+    "Five stars. Dramatic, warm, and somehow toasted evenly."
+  ],
+  balanced: [
+    "Uber, but for borrowing confidence from strangers.",
+    "My browser history is just market research with emotional side quests.",
+    "We regret to inform you your cardio has been seeing other people.",
+    "A gold-plated subscription box for unused planners.",
+    "This group chat has caused more chaos than an unpaid intern with admin access.",
+    "Where the waiter judges you before the food does.",
+    "How I Turned Minor Inconvenience Into A Full Personality.",
+    "Five stars. Screamed at me in Latin, toasted evenly."
+  ],
+  bold: [
+    "A startup that turns overconfidence into push notifications.",
+    "My browser history has a crisis PR team and three fake tabs for dignity.",
+    "Your gym membership is leaving because it wants a relationship with effort.",
+    "A diamond-coated calendar for people allergic to follow-through.",
+    "This group chat needs a board, bylaws, and adult supervision.",
+    "Where the food arrives late and somehow still has an attitude.",
+    "How I Monetized Avoiding Basic Responsibilities.",
+    "Five stars. Possessed, dramatic, and still more reliable than my schedule."
+  ]
+};
 
 const state = {
   screen: "home",
@@ -224,6 +270,7 @@ const state = {
   worldRoom: "global",
   selectedRecipeId: "calmFriends",
   selectedJudgeId: "auntie",
+  roastLevel: "gentle",
   round: 1,
   maxRounds: gameModes.classic.rounds,
   promptIndex: 0,
@@ -273,6 +320,14 @@ function currentRecipe() {
   return roomRecipes[state.selectedRecipeId] || null;
 }
 
+function currentComedyGuard() {
+  return comedyGuards[state.roastLevel] || comedyGuards.gentle;
+}
+
+function currentBotAnswers() {
+  return botAnswerPacks[state.roastLevel] || botAnswerPacks.gentle;
+}
+
 function activePrompt() {
   const prompts = promptPacks[state.mode] || promptPacks.classic;
   return prompts[state.promptIndex % prompts.length];
@@ -300,6 +355,7 @@ function applyRoomRecipe(recipeId) {
   state.worldRoom = recipe.worldRoom;
   state.mode = recipe.mode;
   state.selectedJudgeId = recipe.selectedJudgeId;
+  state.roastLevel = recipe.roastLevel;
   state.maxRounds = recipe.maxRounds;
   state.timeLimit = recipe.timeLimit;
   state.timeLeft = recipe.timeLimit;
@@ -317,11 +373,13 @@ function roomSummaryMarkup() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const recipe = currentRecipe();
+  const guard = currentComedyGuard();
   return `
     <div class="room-summary" aria-label="Room setup summary">
       <span>${escapeHtml(recipe ? recipe.label : "Custom")} Recipe</span>
       <span>${escapeHtml(vibe.label)} Vibe</span>
       <span>${escapeHtml(worldRoom.label)} Room</span>
+      <span>${escapeHtml(guard.label)} Guard</span>
       <span>${state.maxRounds} Rounds</span>
     </div>
   `;
@@ -478,6 +536,7 @@ function buildRecapText() {
     `Mode: ${currentMode().label}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
+    `Comedy guard: ${currentComedyGuard().label}`,
     `Champion: ${leader.name} (${leader.score} pts)`,
     "",
     "Scoreboard:",
@@ -538,6 +597,7 @@ function renderHome() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const recipe = currentRecipe();
+  const guard = currentComedyGuard();
   return shellMarkup(`
     <section class="home-layout">
       <div>
@@ -548,7 +608,7 @@ function renderHome() {
         <div class="stats-grid">
           <div class="stat"><strong>${escapeHtml(vibe.label)}</strong><span>Room Vibe</span></div>
           <div class="stat"><strong>${escapeHtml(worldRoom.label)}</strong><span>World Room</span></div>
-          <div class="stat"><strong>0</strong><span>Install Needed</span></div>
+          <div class="stat"><strong>${escapeHtml(guard.label)}</strong><span>Comedy Guard</span></div>
         </div>
       </div>
 
@@ -601,13 +661,15 @@ function renderHome() {
             </select>
           </div>
           <div class="field">
-            <label>Room brief</label>
-            <div class="brief-card">
-              <strong>${escapeHtml(vibe.label)} / ${escapeHtml(worldRoom.label)}</strong>
-              <span>${escapeHtml(mode.tone)}</span>
-            </div>
+            <label for="guardSelect">Comedy guard</label>
+            <select id="guardSelect">
+              ${Object.entries(comedyGuards).map(([id, item]) => `
+                <option value="${id}" ${state.roastLevel === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+              `).join("")}
+            </select>
           </div>
         </div>
+        <p class="field-note">${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
         <div class="rules-grid">
           <div class="field">
             <label for="maxRounds">Rounds</label>
@@ -641,6 +703,7 @@ function renderLobby() {
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const guard = currentComedyGuard();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Players">
@@ -666,6 +729,10 @@ function renderLobby() {
             <span>${escapeHtml(vibe.label)} host cue</span>
             <p>${escapeHtml(vibe.hostCue)}</p>
           </div>
+          <div class="host-cue guard-cue">
+            <span>${escapeHtml(guard.label)} comedy guard</span>
+            <p>${escapeHtml(guard.cue)}</p>
+          </div>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
             <button class="button secondary" id="addBot">Add Bot</button>
@@ -681,6 +748,7 @@ function renderSubmit() {
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const guard = currentComedyGuard();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Scoreboard">
@@ -704,9 +772,9 @@ function renderSubmit() {
             </div>
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
-          <p class="room-cue">${escapeHtml(worldRoom.label)} room: ${escapeHtml(worldRoom.cue)}</p>
+          <p class="room-cue">${escapeHtml(worldRoom.label)} room / ${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
-          <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="Make it funny, not felony."></textarea>
+          <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="${escapeHtml(guard.placeholder)}"></textarea>
           <div class="input-meta">
             <span id="charCount">0/160</span>
             <span>${pointsForWin()} points if picked</span>
@@ -802,6 +870,7 @@ function renderScoreboardScreen() {
   const leader = [...state.players].sort((a, b) => b.score - a.score)[0];
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const guard = currentComedyGuard();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Final scoreboard">
@@ -822,7 +891,7 @@ function renderScoreboardScreen() {
           </div>
           <p class="kicker">Champion</p>
           <h2 class="winner-line">${escapeHtml(leader.name)} wins Roast Arena</h2>
-          <p class="hero-copy">${escapeHtml(vibe.label)} vibe, ${escapeHtml(worldRoom.label)} room. The jokes landed, the flow stayed calm, and the winner gets the clean receipt.</p>
+          <p class="hero-copy">${escapeHtml(vibe.label)} vibe, ${escapeHtml(worldRoom.label)} room, ${escapeHtml(guard.label)} guard. The jokes landed, the flow stayed calm, and the winner gets the clean receipt.</p>
           <div class="champion-card">
             <span class="avatar champion-avatar">${escapeHtml(initials(leader.name))}</span>
             <div>
@@ -865,12 +934,14 @@ function bindEvents() {
     const roomCode = document.querySelector("#roomCode").value.trim().toUpperCase() || "R0AST";
     const worldRoom = document.querySelector("#worldRoom").value;
     const judgeId = document.querySelector("#judgeSelect").value;
+    const roastLevel = document.querySelector("#guardSelect").value;
     const maxRounds = clampNumber(document.querySelector("#maxRounds").value, 1, 7, currentMode().rounds);
     const timeLimit = clampNumber(document.querySelector("#timeLimit").value, 20, 90, currentMode().timeLimit);
     state.playerName = playerName;
     state.roomCode = roomCode;
     state.worldRoom = worldRooms[worldRoom] ? worldRoom : "global";
     state.selectedJudgeId = judges.some((judge) => judge.id === judgeId) ? judgeId : "hr";
+    state.roastLevel = comedyGuards[roastLevel] ? roastLevel : "gentle";
     state.maxRounds = maxRounds;
     state.timeLimit = timeLimit;
     state.timeLeft = timeLimit;
@@ -903,6 +974,12 @@ function bindEvents() {
   document.querySelector("#modeSelect")?.addEventListener("change", (event) => {
     markCustomRecipe();
     applyModeDefaults(event.target.value);
+    render();
+  });
+
+  document.querySelector("#guardSelect")?.addEventListener("change", (event) => {
+    markCustomRecipe();
+    state.roastLevel = comedyGuards[event.target.value] ? event.target.value : "gentle";
     render();
   });
 
@@ -963,17 +1040,19 @@ function addBot() {
 
 function useChaosAnswer() {
   const input = document.querySelector("#answerInput");
-  input.value = botAnswers[state.promptIndex % botAnswers.length];
+  const answers = currentBotAnswers();
+  input.value = answers[state.promptIndex % answers.length];
   document.querySelector("#charCount").textContent = `${input.value.length}/160`;
   input.focus();
 }
 
 function buildSubmissions(answer) {
-  const userAnswer = answer || botAnswers[state.promptIndex % botAnswers.length];
+  const answers = currentBotAnswers();
+  const userAnswer = answer || answers[state.promptIndex % answers.length];
   return state.players.map((player, index) => ({
     playerId: player.id,
     playerName: player.name,
-    text: player.bot ? botAnswers[(state.promptIndex + index) % botAnswers.length] : userAnswer
+    text: player.bot ? answers[(state.promptIndex + index) % answers.length] : userAnswer
   })).sort(() => Math.random() - 0.5);
 }
 
