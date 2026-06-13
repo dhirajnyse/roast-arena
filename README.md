@@ -26,6 +26,7 @@ No install step is required for the current static prototype.
 Current prototype flow:
 
 - Home setup
+- One-tap room recipes for faster hosting
 - Serene, Luminous, and Studio room vibes
 - World room profiles for global party taste
 - Mode rules for Classic, Duel, and Court
@@ -41,6 +42,7 @@ Current prototype flow:
 ## First Build Goals
 
 - Create or join a party room.
+- Pick a one-tap room recipe.
 - Pick a calm room vibe.
 - Pick a global room profile.
 - Pick a judge personality.

@@ -113,6 +113,42 @@ const worldRooms = {
   }
 };
 
+const roomRecipes = {
+  calmFriends: {
+    label: "Calm Friends",
+    helper: "Easy starter room",
+    brief: "A gentle default for first-time rooms, mixed friend groups, and low-pressure laughs.",
+    roomVibe: "serene",
+    worldRoom: "global",
+    mode: "classic",
+    selectedJudgeId: "auntie",
+    maxRounds: 3,
+    timeLimit: 45
+  },
+  globalTeam: {
+    label: "Global Team",
+    helper: "Work-safe social",
+    brief: "A polished room for remote teams, offsites, and people joining from different cultures.",
+    roomVibe: "luminous",
+    worldRoom: "singapore",
+    mode: "court",
+    selectedJudgeId: "hr",
+    maxRounds: 3,
+    timeLimit: 60
+  },
+  creatorNight: {
+    label: "Creator Night",
+    helper: "Clip-ready chaos",
+    brief: "A sharper setup for streamers, parties, and rooms that want fast memorable moments.",
+    roomVibe: "studio",
+    worldRoom: "newyork",
+    mode: "duel",
+    selectedJudgeId: "ceo",
+    maxRounds: 5,
+    timeLimit: 35
+  }
+};
+
 const judges = [
   {
     id: "hr",
@@ -186,7 +222,8 @@ const state = {
   mode: "classic",
   roomVibe: "serene",
   worldRoom: "global",
-  selectedJudgeId: "hr",
+  selectedRecipeId: "calmFriends",
+  selectedJudgeId: "auntie",
   round: 1,
   maxRounds: gameModes.classic.rounds,
   promptIndex: 0,
@@ -232,6 +269,10 @@ function currentWorldRoom() {
   return worldRooms[state.worldRoom] || worldRooms.global;
 }
 
+function currentRecipe() {
+  return roomRecipes[state.selectedRecipeId] || null;
+}
+
 function activePrompt() {
   const prompts = promptPacks[state.mode] || promptPacks.classic;
   return prompts[state.promptIndex % prompts.length];
@@ -251,6 +292,23 @@ function applyModeDefaults(modeId) {
   state.timeLeft = mode.timeLimit;
 }
 
+function applyRoomRecipe(recipeId) {
+  const recipe = roomRecipes[recipeId];
+  if (!recipe) return;
+  state.selectedRecipeId = recipeId;
+  state.roomVibe = recipe.roomVibe;
+  state.worldRoom = recipe.worldRoom;
+  state.mode = recipe.mode;
+  state.selectedJudgeId = recipe.selectedJudgeId;
+  state.maxRounds = recipe.maxRounds;
+  state.timeLimit = recipe.timeLimit;
+  state.timeLeft = recipe.timeLimit;
+}
+
+function markCustomRecipe() {
+  state.selectedRecipeId = "custom";
+}
+
 function pointsForWin() {
   return currentMode().points;
 }
@@ -258,8 +316,10 @@ function pointsForWin() {
 function roomSummaryMarkup() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const recipe = currentRecipe();
   return `
     <div class="room-summary" aria-label="Room setup summary">
+      <span>${escapeHtml(recipe ? recipe.label : "Custom")} Recipe</span>
       <span>${escapeHtml(vibe.label)} Vibe</span>
       <span>${escapeHtml(worldRoom.label)} Room</span>
       <span>${state.maxRounds} Rounds</span>
@@ -477,6 +537,7 @@ function renderHome() {
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const recipe = currentRecipe();
   return shellMarkup(`
     <section class="home-layout">
       <div>
@@ -503,37 +564,49 @@ function renderHome() {
           </div>
         </div>
         <div class="field">
-          <label>Room vibe</label>
-          <div class="vibe-grid">
-            ${Object.entries(roomVibes).map(([id, item]) => `
-              <button class="choice ${state.roomVibe === id ? "active" : ""}" type="button" data-vibe="${id}">
+          <label>Room recipe</label>
+          <div class="recipe-grid">
+            ${Object.entries(roomRecipes).map(([id, item]) => `
+              <button class="choice recipe-choice ${state.selectedRecipeId === id ? "active" : ""}" type="button" data-recipe="${id}">
                 <strong>${escapeHtml(item.label)}</strong>
                 <span>${escapeHtml(item.helper)}</span>
               </button>
             `).join("")}
           </div>
-          <p class="field-note">${escapeHtml(vibe.tone)}</p>
+          <p class="field-note">${escapeHtml(recipe ? recipe.brief : "Custom room: your fine-tuned setup is ready.")}</p>
         </div>
-        <div class="field">
-          <label for="worldRoom">World room</label>
-          <select id="worldRoom">
-            ${Object.entries(worldRooms).map(([id, item]) => `
-              <option value="${id}" ${state.worldRoom === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
-            `).join("")}
-          </select>
-          <p class="field-note">${escapeHtml(worldRoom.cue)}</p>
-        </div>
-        <div class="field">
-          <label>Mode</label>
-          <div class="mode-grid">
-            ${Object.entries(gameModes).map(([id, item]) => `
-              <button class="choice ${state.mode === id ? "active" : ""}" type="button" data-mode="${id}">
-                <strong>${escapeHtml(item.label)}</strong>
-                <span>${escapeHtml(item.helper)}</span>
-              </button>
-            `).join("")}
+        <div class="tune-grid">
+          <div class="field">
+            <label for="worldRoom">World room</label>
+            <select id="worldRoom">
+              ${Object.entries(worldRooms).map(([id, item]) => `
+                <option value="${id}" ${state.worldRoom === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+              `).join("")}
+            </select>
           </div>
-          <p class="field-note">${escapeHtml(mode.tone)}</p>
+          <div class="field">
+            <label for="vibeSelect">Vibe</label>
+            <select id="vibeSelect">
+              ${Object.entries(roomVibes).map(([id, item]) => `
+                <option value="${id}" ${state.roomVibe === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+              `).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label for="modeSelect">Mode</label>
+            <select id="modeSelect">
+              ${Object.entries(gameModes).map(([id, item]) => `
+                <option value="${id}" ${state.mode === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+              `).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label>Room brief</label>
+            <div class="brief-card">
+              <strong>${escapeHtml(vibe.label)} / ${escapeHtml(worldRoom.label)}</strong>
+              <span>${escapeHtml(mode.tone)}</span>
+            </div>
+          </div>
         </div>
         <div class="rules-grid">
           <div class="field">
@@ -808,36 +881,39 @@ function bindEvents() {
     setScreen("lobby");
   });
 
-  document.querySelectorAll("[data-mode]").forEach((button) => {
+  document.querySelectorAll("[data-recipe]").forEach((button) => {
     button.addEventListener("click", () => {
-      applyModeDefaults(button.dataset.mode);
-      render();
-    });
-  });
-
-  document.querySelectorAll("[data-vibe]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.roomVibe = roomVibes[button.dataset.vibe] ? button.dataset.vibe : "serene";
+      applyRoomRecipe(button.dataset.recipe);
       render();
     });
   });
 
   document.querySelector("#worldRoom")?.addEventListener("change", (event) => {
+    markCustomRecipe();
     state.worldRoom = worldRooms[event.target.value] ? event.target.value : "global";
     render();
   });
 
-  document.querySelectorAll("[data-judge]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.selectedJudgeId = button.dataset.judge;
-      render();
-    });
+  document.querySelector("#vibeSelect")?.addEventListener("change", (event) => {
+    markCustomRecipe();
+    state.roomVibe = roomVibes[event.target.value] ? event.target.value : "serene";
+    render();
+  });
+
+  document.querySelector("#modeSelect")?.addEventListener("change", (event) => {
+    markCustomRecipe();
+    applyModeDefaults(event.target.value);
+    render();
   });
 
   document.querySelector("#judgeSelect")?.addEventListener("change", (event) => {
+    markCustomRecipe();
     state.selectedJudgeId = judges.some((judge) => judge.id === event.target.value) ? event.target.value : "hr";
     render();
   });
+
+  document.querySelector("#maxRounds")?.addEventListener("input", markCustomRecipe);
+  document.querySelector("#timeLimit")?.addEventListener("input", markCustomRecipe);
 
   document.querySelector("#backHome")?.addEventListener("click", () => setScreen("home"));
   document.querySelector("#startGame")?.addEventListener("click", () => {
