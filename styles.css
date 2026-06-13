@@ -491,6 +491,14 @@ h2 {
   text-transform: uppercase;
 }
 
+.field-note,
+.mode-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .field input,
 .field select {
   min-height: 48px;
@@ -512,7 +520,8 @@ h2 {
 
 .mode-grid,
 .judge-grid,
-.stats-grid {
+.stats-grid,
+.rules-grid {
   display: grid;
   gap: 10px;
 }
@@ -523,6 +532,11 @@ h2 {
 
 .judge-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rules-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
 }
 
 .stats-grid {
@@ -598,6 +612,29 @@ h2 {
 
 .stat span {
   font-weight: 900;
+}
+
+.rule-card {
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--yellow), var(--lime));
+}
+
+.rule-card span,
+.rule-card strong {
+  display: block;
+}
+
+.rule-card span {
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.rule-card strong {
+  font-size: 1.25rem;
 }
 
 .round-shell {
@@ -698,6 +735,10 @@ h2 {
   resize: vertical;
 }
 
+.answer-input.shake {
+  animation: shakeInput 0.28s ease-in-out;
+}
+
 .input-meta {
   display: flex;
   justify-content: space-between;
@@ -706,6 +747,20 @@ h2 {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.form-error,
+.share-status {
+  min-height: 20px;
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.share-status {
+  margin-top: 10px;
+  color: var(--success);
 }
 
 .submissions {
@@ -808,6 +863,54 @@ h2 {
   background: var(--pink);
 }
 
+.recap-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.recap-item {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 247, 223, 0.08);
+}
+
+.recap-item div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recap-item span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.recap-item strong {
+  color: var(--yellow);
+}
+
+.recap-item p,
+.recap-item blockquote {
+  margin: 0;
+}
+
+.recap-item p {
+  color: var(--paper);
+  font-weight: 850;
+}
+
+.recap-item blockquote {
+  padding-left: 10px;
+  border-left: 4px solid var(--cyan);
+  color: var(--muted);
+}
+
 .confetti {
   position: absolute;
   inset: 0;
@@ -898,6 +1001,7 @@ h2 {
   .home-layout,
   .mode-grid,
   .judge-grid,
+  .rules-grid,
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -927,6 +1031,21 @@ h2 {
 @keyframes spinBurst {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes shakeInput {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  30% {
+    transform: translateX(-5px);
+  }
+
+  65% {
+    transform: translateX(5px);
   }
 }
 

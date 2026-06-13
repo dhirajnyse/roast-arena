@@ -26,22 +26,27 @@ No install step is required for the current static prototype.
 Current prototype flow:
 
 - Home setup
+- Mode rules for Classic, Duel, and Court
+- Host-controlled round count and timer length
 - Judge selection
 - Lobby
 - Prompt submission
+- Empty-answer guard and chaos answer assist
 - Anonymous voting
 - Judge verdict
-- Final scoreboard
+- Final scoreboard with copyable party recap
 
 ## First Build Goals
 
 - Create or join a party room.
 - Pick a judge personality.
+- Pick a room mode with its own prompt pack, timer, and scoring.
 - Play short prompt rounds.
 - Submit anonymous answers.
 - Vote.
 - Show judge verdicts.
 - Track a scoreboard.
+- Share a final recap after the match.
 
 ## Future Monetization
 

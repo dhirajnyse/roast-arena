@@ -1,15 +1,60 @@
 const app = document.querySelector("#app");
 
-const prompts = [
-  "Pitch the worst startup idea that somehow gets VC funding.",
-  "Defend your browser history in court.",
-  "Write a breakup text from a gym membership.",
-  "Invent a luxury product nobody asked for.",
-  "Explain why this group chat deserves government supervision.",
-  "Write a slogan for a restaurant with terrible service.",
-  "Give a TED Talk title for your worst life decision.",
-  "Write a customer review for a haunted toaster."
-];
+const gameModes = {
+  classic: {
+    label: "Classic",
+    helper: "Same prompt",
+    rounds: 3,
+    timeLimit: 45,
+    points: 3,
+    tone: "Fast party-room prompts for everyone."
+  },
+  duel: {
+    label: "Duel",
+    helper: "Face-off",
+    rounds: 5,
+    timeLimit: 35,
+    points: 4,
+    tone: "Sharper one-on-one callouts with a quicker clock."
+  },
+  court: {
+    label: "Court",
+    helper: "Verdict drama",
+    rounds: 3,
+    timeLimit: 60,
+    points: 5,
+    tone: "Bigger setups, louder judge rulings, more points."
+  }
+};
+
+const promptPacks = {
+  classic: [
+    "Pitch the worst startup idea that somehow gets VC funding.",
+    "Defend your browser history in court.",
+    "Write a breakup text from a gym membership.",
+    "Invent a luxury product nobody asked for.",
+    "Explain why this group chat deserves government supervision.",
+    "Write a slogan for a restaurant with terrible service.",
+    "Give a TED Talk title for your worst life decision.",
+    "Write a customer review for a haunted toaster."
+  ],
+  duel: [
+    "Roast your rival's imaginary LinkedIn headline.",
+    "Explain why your opponent would lose a debate against a toaster.",
+    "Write the warning label that should come with your rival's confidence.",
+    "Pitch your rival as a premium subscription nobody renews.",
+    "Describe your rival's villain origin story in one sentence.",
+    "Write a campaign slogan for your rival's worst habit."
+  ],
+  court: [
+    "Present evidence that this friend group should be monitored by the comedy police.",
+    "Write the closing argument for why your answer deserves immunity.",
+    "Accuse a household object of ruining society.",
+    "Draft the judge's statement after the most chaotic group chat incident.",
+    "Defend the worst vacation plan like it is a constitutional right.",
+    "Write a dramatic witness statement from an overworked phone charger."
+  ]
+};
 
 const judges = [
   {
@@ -84,12 +129,14 @@ const state = {
   mode: "classic",
   selectedJudgeId: "hr",
   round: 1,
-  maxRounds: 3,
+  maxRounds: gameModes.classic.rounds,
   promptIndex: 0,
-  timeLeft: 45,
+  timeLimit: gameModes.classic.timeLimit,
+  timeLeft: gameModes.classic.timeLimit,
   submissions: [],
   winner: null,
   verdict: "",
+  notice: "",
   history: [],
   players: [
     { id: "you", name: "You", score: 0, bot: false },
@@ -114,8 +161,31 @@ function currentJudge() {
   return judges.find((judge) => judge.id === state.selectedJudgeId) || judges[0];
 }
 
+function currentMode() {
+  return gameModes[state.mode] || gameModes.classic;
+}
+
 function activePrompt() {
+  const prompts = promptPacks[state.mode] || promptPacks.classic;
   return prompts[state.promptIndex % prompts.length];
+}
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(number)));
+}
+
+function applyModeDefaults(modeId) {
+  const mode = gameModes[modeId] || gameModes.classic;
+  state.mode = gameModes[modeId] ? modeId : "classic";
+  state.maxRounds = mode.rounds;
+  state.timeLimit = mode.timeLimit;
+  state.timeLeft = mode.timeLimit;
+}
+
+function pointsForWin() {
+  return currentMode().points;
 }
 
 function initials(name) {
@@ -136,9 +206,11 @@ function resetGame() {
   stopTimer();
   state.round = 1;
   state.promptIndex = 0;
+  state.timeLeft = state.timeLimit;
   state.submissions = [];
   state.winner = null;
   state.verdict = "";
+  state.notice = "";
   state.history = [];
   state.players = state.players.map((player) => ({ ...player, score: 0 }));
 }
@@ -160,7 +232,7 @@ function startRoundTimer() {
     const timer = document.querySelector("#roundTimer");
     const fill = document.querySelector("#timerFill");
     if (timer) timer.textContent = state.timeLeft;
-    if (fill) fill.style.width = `${Math.max(0, (state.timeLeft / 45) * 100)}%`;
+    if (fill) fill.style.width = `${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%`;
     if (state.timeLeft === 0) submitAnswer(true);
   }, 1000);
 }
@@ -235,6 +307,79 @@ function historyMarkup() {
   `;
 }
 
+function finalRecapMarkup() {
+  if (!state.history.length) return "";
+  return `
+    <div class="recap-list" aria-label="Round recap">
+      ${state.history.map((item) => `
+        <article class="recap-item">
+          <div>
+            <span>Round ${item.round} / ${escapeHtml(item.mode)}</span>
+            <strong>${escapeHtml(item.playerName)} +${item.points}</strong>
+          </div>
+          <p>${escapeHtml(item.prompt)}</p>
+          <blockquote>${escapeHtml(item.answer)}</blockquote>
+        </article>
+      `).join("")}
+    </div>
+  `;
+}
+
+function buildRecapText() {
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  const leader = sorted[0];
+  const scoreLines = sorted.map((player, index) => `${index + 1}. ${player.name} - ${player.score} pts`);
+  const roundLines = state.history.map((item) => (
+    `R${item.round}: ${item.playerName} won ${item.points} pts with "${item.answer}"`
+  ));
+  return [
+    `Roast Arena recap - ${state.roomCode}`,
+    `Mode: ${currentMode().label}`,
+    `Champion: ${leader.name} (${leader.score} pts)`,
+    "",
+    "Scoreboard:",
+    ...scoreLines,
+    "",
+    "Round winners:",
+    ...roundLines
+  ].join("\n");
+}
+
+function setShareStatus(message) {
+  state.notice = message;
+  const status = document.querySelector("#shareStatus");
+  if (status) status.textContent = message;
+}
+
+function fallbackCopy(text) {
+  const scratch = document.createElement("textarea");
+  scratch.value = text;
+  scratch.setAttribute("readonly", "");
+  scratch.style.position = "fixed";
+  scratch.style.left = "-9999px";
+  document.body.appendChild(scratch);
+  scratch.select();
+  try {
+    const copied = document.execCommand("copy");
+    setShareStatus(copied ? "Recap copied to clipboard." : "Could not copy recap in this browser.");
+  } catch (error) {
+    setShareStatus("Could not copy recap in this browser.");
+  } finally {
+    scratch.remove();
+  }
+}
+
+function copyRecap() {
+  const text = buildRecapText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setShareStatus("Recap copied to clipboard."))
+      .catch(() => fallbackCopy(text));
+    return;
+  }
+  fallbackCopy(text);
+}
+
 function shellMarkup(content) {
   return `
     <section class="game-panel" aria-label="Roast Arena game">
@@ -246,6 +391,7 @@ function shellMarkup(content) {
 
 function renderHome() {
   const judge = currentJudge();
+  const mode = currentMode();
   return shellMarkup(`
     <section class="home-layout">
       <div>
@@ -272,16 +418,27 @@ function renderHome() {
         <div class="field">
           <label>Mode</label>
           <div class="mode-grid">
-            ${[
-              ["classic", "Classic", "Same prompt"],
-              ["duel", "Duel", "Face-off"],
-              ["court", "Court", "Verdict drama"]
-            ].map(([id, label, helper]) => `
+            ${Object.entries(gameModes).map(([id, item]) => `
               <button class="choice ${state.mode === id ? "active" : ""}" type="button" data-mode="${id}">
-                <strong>${label}</strong>
-                <span>${helper}</span>
+                <strong>${escapeHtml(item.label)}</strong>
+                <span>${escapeHtml(item.helper)}</span>
               </button>
             `).join("")}
+          </div>
+          <p class="field-note">${escapeHtml(mode.tone)}</p>
+        </div>
+        <div class="rules-grid">
+          <div class="field">
+            <label for="maxRounds">Rounds</label>
+            <input id="maxRounds" type="number" min="1" max="7" value="${state.maxRounds}">
+          </div>
+          <div class="field">
+            <label for="timeLimit">Timer seconds</label>
+            <input id="timeLimit" type="number" min="20" max="90" step="5" value="${state.timeLimit}">
+          </div>
+          <div class="rule-card">
+            <span>Win Value</span>
+            <strong>${mode.points} pts</strong>
           </div>
         </div>
         <div class="field">
@@ -302,6 +459,7 @@ function renderHome() {
 }
 
 function renderLobby() {
+  const mode = currentMode();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Players">
@@ -319,9 +477,10 @@ function renderLobby() {
           <div class="lobby-code">${escapeHtml(state.roomCode)}</div>
           <div class="stats-grid">
             <div class="stat"><strong>${state.maxRounds}</strong><span>Rounds</span></div>
-            <div class="stat"><strong>${state.players.length}</strong><span>Players</span></div>
-            <div class="stat"><strong>45</strong><span>Seconds</span></div>
+            <div class="stat"><strong>${state.timeLimit}</strong><span>Seconds</span></div>
+            <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
+          <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
             <button class="button secondary" id="addBot">Add Bot</button>
@@ -335,12 +494,13 @@ function renderLobby() {
 
 function renderSubmit() {
   const judge = currentJudge();
+  const mode = currentMode();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Scoreboard">
         <div class="sidebar-header">
           <h2>Scoreboard</h2>
-          <span>Round ${state.round}</span>
+          <span>Round ${state.round}/${state.maxRounds}</span>
         </div>
         ${scoreboardMarkup()}
       </aside>
@@ -352,18 +512,19 @@ function renderSubmit() {
         <div class="phase-panel round-shell">
           <div class="timer-row">
             <div>
-              <p class="kicker">Your Turn</p>
+              <p class="kicker">${escapeHtml(mode.label)} Mode</p>
               <h2>Drop your roast</h2>
               <p class="judge-reaction">${escapeHtml(judge.reaction)}</p>
             </div>
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
-          <div class="progress-track"><span class="progress-fill" id="timerFill"></span></div>
+          <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
           <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="Make it funny, not felony."></textarea>
           <div class="input-meta">
             <span id="charCount">0/160</span>
-            <span>Anonymous until verdict</span>
+            <span>${pointsForWin()} points if picked</span>
           </div>
+          <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
           <div class="controls">
             <button class="button hot" id="submitAnswer">Submit Roast</button>
             <button class="button secondary" id="chaosAnswer">Use Chaos Answer</button>
@@ -397,6 +558,7 @@ function renderVote() {
         <div class="phase-panel">
           <p class="kicker">Pick the winner</p>
           <h2>Which answer owns the room?</h2>
+          <p class="mode-note">Winner earns ${pointsForWin()} points in ${escapeHtml(currentMode().label)} mode.</p>
           <div class="submissions">
             ${state.submissions.map((entry, index) => `
               <button class="submission" data-vote="${index}">
@@ -438,6 +600,7 @@ function renderVerdict() {
             <span>Winning answer</span>
             <p>${escapeHtml(winner.text)}</p>
           </div>
+          <p class="mode-note">${escapeHtml(winner.playerName)} banked ${pointsForWin()} points for this verdict.</p>
           <div class="controls">
             <button class="button hot" id="continueGame">${state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round"}</button>
             <button class="button ghost" id="playAgain">Restart</button>
@@ -478,10 +641,13 @@ function renderScoreboardScreen() {
               <strong>${leader.score} points</strong>
             </div>
           </div>
+          ${finalRecapMarkup()}
           <div class="controls">
             <button class="button hot" id="newGame">Run It Back</button>
             <button class="button secondary" id="newRoom">New Room Setup</button>
+            <button class="button ghost" id="copyRecap">Copy Recap</button>
           </div>
+          <p class="share-status" id="shareStatus">${state.notice ? escapeHtml(state.notice) : ""}</p>
         </div>
       </section>
     </section>
@@ -507,8 +673,13 @@ function bindEvents() {
     event.preventDefault();
     const playerName = document.querySelector("#playerName").value.trim() || "You";
     const roomCode = document.querySelector("#roomCode").value.trim().toUpperCase() || "R0AST";
+    const maxRounds = clampNumber(document.querySelector("#maxRounds").value, 1, 7, currentMode().rounds);
+    const timeLimit = clampNumber(document.querySelector("#timeLimit").value, 20, 90, currentMode().timeLimit);
     state.playerName = playerName;
     state.roomCode = roomCode;
+    state.maxRounds = maxRounds;
+    state.timeLimit = timeLimit;
+    state.timeLeft = timeLimit;
     state.players = state.players.map((player) => (
       player.id === "you" ? { ...player, name: playerName } : player
     ));
@@ -518,7 +689,7 @@ function bindEvents() {
 
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.mode = button.dataset.mode;
+      applyModeDefaults(button.dataset.mode);
       render();
     });
   });
@@ -532,7 +703,7 @@ function bindEvents() {
 
   document.querySelector("#backHome")?.addEventListener("click", () => setScreen("home"));
   document.querySelector("#startGame")?.addEventListener("click", () => {
-    state.timeLeft = 45;
+    state.timeLeft = state.timeLimit;
     setScreen("submit");
   });
   document.querySelector("#addBot")?.addEventListener("click", addBot);
@@ -552,6 +723,7 @@ function bindEvents() {
     resetGame();
     setScreen("home");
   });
+  document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
 
   const answerInput = document.querySelector("#answerInput");
   const charCount = document.querySelector("#charCount");
@@ -592,9 +764,19 @@ function buildSubmissions(answer) {
 }
 
 function submitAnswer(forceBotAnswer = false) {
-  stopTimer();
   const input = document.querySelector("#answerInput");
   const answer = forceBotAnswer ? "" : input.value.trim();
+  if (!forceBotAnswer && !answer) {
+    state.notice = "Write a roast first, or use Chaos Answer.";
+    const error = document.querySelector("#answerError");
+    if (error) error.textContent = state.notice;
+    input.focus();
+    input.classList.remove("shake");
+    window.requestAnimationFrame(() => input.classList.add("shake"));
+    return;
+  }
+  stopTimer();
+  state.notice = "";
   state.submissions = buildSubmissions(answer);
   setScreen("vote");
 }
@@ -602,13 +784,17 @@ function submitAnswer(forceBotAnswer = false) {
 function chooseWinner(index) {
   const winner = state.submissions[index];
   const player = state.players.find((item) => item.id === winner.playerId);
-  if (player) player.score += 3;
+  const points = pointsForWin();
+  if (player) player.score += points;
   state.winner = winner;
   state.verdict = randomFrom(currentJudge().verdicts);
   state.history.push({
     round: state.round,
+    mode: currentMode().label,
     playerName: winner.playerName,
-    prompt: activePrompt()
+    prompt: activePrompt(),
+    answer: winner.text,
+    points
   });
   setScreen("verdict");
 }
@@ -620,10 +806,11 @@ function continueGame() {
   }
   state.round += 1;
   state.promptIndex += 1;
-  state.timeLeft = 45;
+  state.timeLeft = state.timeLimit;
   state.submissions = [];
   state.winner = null;
   state.verdict = "";
+  state.notice = "";
   setScreen("submit");
 }
 
