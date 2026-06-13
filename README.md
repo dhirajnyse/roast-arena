@@ -2,7 +2,7 @@
 
 Roast Arena is a browser-first party comedy game where players join a room, answer ridiculous prompts, vote on anonymous submissions, and let a dramatic judge crown the funniest player.
 
-This repo currently contains the early brand kit and a static playable prototype. The first build goal is simple: make the room loop funny before adding accounts, real multiplayer, AI, payments, or creator tools.
+This repo currently contains the early brand kit and a static playable prototype. The product direction is simple: make the room loop funny, calm, global-ready, and easy to expand before adding accounts, real multiplayer, AI, payments, or creator tools.
 
 ## Product Name
 
@@ -26,6 +26,8 @@ No install step is required for the current static prototype.
 Current prototype flow:
 
 - Home setup
+- Serene, Luminous, and Studio room vibes
+- World room profiles for global party taste
 - Mode rules for Classic, Duel, and Court
 - Host-controlled round count and timer length
 - Judge selection
@@ -39,6 +41,8 @@ Current prototype flow:
 ## First Build Goals
 
 - Create or join a party room.
+- Pick a calm room vibe.
+- Pick a global room profile.
 - Pick a judge personality.
 - Pick a room mode with its own prompt pack, timer, and scoring.
 - Play short prompt rounds.

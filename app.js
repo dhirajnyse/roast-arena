@@ -56,6 +56,63 @@ const promptPacks = {
   ]
 };
 
+const roomVibes = {
+  serene: {
+    label: "Serene",
+    helper: "Soft focus",
+    badge: "Serene Room",
+    tone: "Calm pacing, polished jokes, no frantic energy.",
+    hostCue: "Take a breath. Let the sharpest line arrive clean."
+  },
+  luminous: {
+    label: "Luminous",
+    helper: "Bright lounge",
+    badge: "Luminous Room",
+    tone: "Warm, social, easy for mixed groups.",
+    hostCue: "Keep it bright, quick, and impossible not to smile at."
+  },
+  studio: {
+    label: "Studio",
+    helper: "Creator ready",
+    badge: "Studio Room",
+    tone: "Streamer-friendly rhythm with crisp reveals.",
+    hostCue: "Write like the clip will be replayed tomorrow."
+  }
+};
+
+const worldRooms = {
+  global: {
+    label: "Global",
+    cue: "Culture-neutral prompts for mixed rooms.",
+    hostLine: "Built for friends across cities, accents, and time zones."
+  },
+  dubai: {
+    label: "Dubai",
+    cue: "Luxury, ambition, brunch, and group chat diplomacy.",
+    hostLine: "Keep it glossy, clever, and just dramatic enough."
+  },
+  mumbai: {
+    label: "Mumbai",
+    cue: "Fast banter, family energy, hustle, and filmi timing.",
+    hostLine: "Make the room feel busy, warm, and dangerously witty."
+  },
+  london: {
+    label: "London",
+    cue: "Dry wit, polite damage, and weather-based judgment.",
+    hostLine: "Understate the insult and let the silence do half the work."
+  },
+  singapore: {
+    label: "Singapore",
+    cue: "Clean, sharp, efficient jokes with food-court precision.",
+    hostLine: "Keep it tidy, fast, and oddly devastating."
+  },
+  newyork: {
+    label: "New York",
+    cue: "Direct, fast, high-pressure punchlines.",
+    hostLine: "No warmup. Land the joke before the elevator closes."
+  }
+};
+
 const judges = [
   {
     id: "hr",
@@ -127,6 +184,8 @@ const state = {
   playerName: "You",
   roomCode: "R0AST",
   mode: "classic",
+  roomVibe: "serene",
+  worldRoom: "global",
   selectedJudgeId: "hr",
   round: 1,
   maxRounds: gameModes.classic.rounds,
@@ -165,6 +224,14 @@ function currentMode() {
   return gameModes[state.mode] || gameModes.classic;
 }
 
+function currentVibe() {
+  return roomVibes[state.roomVibe] || roomVibes.serene;
+}
+
+function currentWorldRoom() {
+  return worldRooms[state.worldRoom] || worldRooms.global;
+}
+
 function activePrompt() {
   const prompts = promptPacks[state.mode] || promptPacks.classic;
   return prompts[state.promptIndex % prompts.length];
@@ -186,6 +253,18 @@ function applyModeDefaults(modeId) {
 
 function pointsForWin() {
   return currentMode().points;
+}
+
+function roomSummaryMarkup() {
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
+  return `
+    <div class="room-summary" aria-label="Room setup summary">
+      <span>${escapeHtml(vibe.label)} Vibe</span>
+      <span>${escapeHtml(worldRoom.label)} Room</span>
+      <span>${state.maxRounds} Rounds</span>
+    </div>
+  `;
 }
 
 function initials(name) {
@@ -239,11 +318,12 @@ function startRoundTimer() {
 
 function headerMarkup() {
   const judge = currentJudge();
+  const vibe = currentVibe();
   return `
     <header class="topbar">
       <img class="brand-mark" src="assets/logo.svg" alt="Roast Arena">
       <div class="brand-lockup">
-        <p class="kicker">Party Room MVP</p>
+        <p class="kicker">${escapeHtml(vibe.badge)}</p>
         <h1>Roast Arena</h1>
       </div>
       <div class="room-code" aria-label="Room code">
@@ -256,6 +336,7 @@ function headerMarkup() {
         <span class="step ${state.screen === step ? "active" : ""}">${step}</span>
       `).join("")}
     </nav>
+    ${state.screen !== "home" ? roomSummaryMarkup() : ""}
     ${state.screen !== "home" ? `
       <section class="judge-card">
         <div class="judge-row">
@@ -335,6 +416,8 @@ function buildRecapText() {
   return [
     `Roast Arena recap - ${state.roomCode}`,
     `Mode: ${currentMode().label}`,
+    `Vibe: ${currentVibe().label}`,
+    `World room: ${currentWorldRoom().label}`,
     `Champion: ${leader.name} (${leader.score} pts)`,
     "",
     "Scoreboard:",
@@ -392,28 +475,53 @@ function shellMarkup(content) {
 function renderHome() {
   const judge = currentJudge();
   const mode = currentMode();
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
   return shellMarkup(`
     <section class="home-layout">
       <div>
         <img class="hero-logo" src="assets/logo.svg" alt="Roast Arena logo">
         <p class="kicker">Enter funny. Leave famous.</p>
-        <h2 class="hero-title">Battle your friends with punchlines.</h2>
-        <p class="hero-copy">Create a party room, pick a dramatic judge, answer absurd prompts, vote anonymously, and let the scoreboard expose who has dangerous comedy timing.</p>
+        <h2 class="hero-title">Calm room. Sharp laughs.</h2>
+        <p class="hero-copy">A global party-room prototype where the interface stays peaceful, the setup stays simple, and the jokes still get their spotlight.</p>
         <div class="stats-grid">
-          <div class="stat"><strong>3</strong><span>Round Sprint</span></div>
-          <div class="stat"><strong>4</strong><span>Starter Judges</span></div>
+          <div class="stat"><strong>${escapeHtml(vibe.label)}</strong><span>Room Vibe</span></div>
+          <div class="stat"><strong>${escapeHtml(worldRoom.label)}</strong><span>World Room</span></div>
           <div class="stat"><strong>0</strong><span>Install Needed</span></div>
         </div>
       </div>
 
       <form class="setup-card" id="setupForm">
-        <div class="field">
-          <label for="playerName">Player name</label>
-          <input id="playerName" maxlength="18" value="${escapeHtml(state.playerName)}">
+        <div class="identity-grid">
+          <div class="field">
+            <label for="playerName">Player name</label>
+            <input id="playerName" maxlength="18" value="${escapeHtml(state.playerName)}">
+          </div>
+          <div class="field">
+            <label for="roomCode">Room code</label>
+            <input id="roomCode" maxlength="8" value="${escapeHtml(state.roomCode)}">
+          </div>
         </div>
         <div class="field">
-          <label for="roomCode">Room code</label>
-          <input id="roomCode" maxlength="8" value="${escapeHtml(state.roomCode)}">
+          <label>Room vibe</label>
+          <div class="vibe-grid">
+            ${Object.entries(roomVibes).map(([id, item]) => `
+              <button class="choice ${state.roomVibe === id ? "active" : ""}" type="button" data-vibe="${id}">
+                <strong>${escapeHtml(item.label)}</strong>
+                <span>${escapeHtml(item.helper)}</span>
+              </button>
+            `).join("")}
+          </div>
+          <p class="field-note">${escapeHtml(vibe.tone)}</p>
+        </div>
+        <div class="field">
+          <label for="worldRoom">World room</label>
+          <select id="worldRoom">
+            ${Object.entries(worldRooms).map(([id, item]) => `
+              <option value="${id}" ${state.worldRoom === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+            `).join("")}
+          </select>
+          <p class="field-note">${escapeHtml(worldRoom.cue)}</p>
         </div>
         <div class="field">
           <label>Mode</label>
@@ -443,14 +551,12 @@ function renderHome() {
         </div>
         <div class="field">
           <label>Judge</label>
-          <div class="judge-grid">
+          <select id="judgeSelect">
             ${judges.map((item) => `
-              <button class="choice ${judge.id === item.id ? "active" : ""}" type="button" data-judge="${item.id}">
-                <strong>${escapeHtml(item.name)}</strong>
-                <span>${escapeHtml(item.flavor)}</span>
-              </button>
+              <option value="${item.id}" ${judge.id === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>
             `).join("")}
-          </div>
+          </select>
+          <p class="field-note">${escapeHtml(judge.flavor)}</p>
         </div>
         <button class="button hot full" type="submit">Create Party Room</button>
       </form>
@@ -460,6 +566,8 @@ function renderHome() {
 
 function renderLobby() {
   const mode = currentMode();
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Players">
@@ -473,7 +581,7 @@ function renderLobby() {
         <div class="phase-panel">
           <p class="kicker">Lobby</p>
           <h2>Share the room code</h2>
-          <p class="hero-copy">This is the party-room prototype: bots stand in for friends so the full loop can be tested instantly.</p>
+          <p class="hero-copy">${escapeHtml(worldRoom.hostLine)}</p>
           <div class="lobby-code">${escapeHtml(state.roomCode)}</div>
           <div class="stats-grid">
             <div class="stat"><strong>${state.maxRounds}</strong><span>Rounds</span></div>
@@ -481,6 +589,10 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
+          <div class="host-cue">
+            <span>${escapeHtml(vibe.label)} host cue</span>
+            <p>${escapeHtml(vibe.hostCue)}</p>
+          </div>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
             <button class="button secondary" id="addBot">Add Bot</button>
@@ -493,8 +605,9 @@ function renderLobby() {
 }
 
 function renderSubmit() {
-  const judge = currentJudge();
   const mode = currentMode();
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Scoreboard">
@@ -514,10 +627,11 @@ function renderSubmit() {
             <div>
               <p class="kicker">${escapeHtml(mode.label)} Mode</p>
               <h2>Drop your roast</h2>
-              <p class="judge-reaction">${escapeHtml(judge.reaction)}</p>
+              <p class="judge-reaction">${escapeHtml(vibe.hostCue)}</p>
             </div>
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
+          <p class="room-cue">${escapeHtml(worldRoom.label)} room: ${escapeHtml(worldRoom.cue)}</p>
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
           <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="Make it funny, not felony."></textarea>
           <div class="input-meta">
@@ -613,6 +727,8 @@ function renderVerdict() {
 
 function renderScoreboardScreen() {
   const leader = [...state.players].sort((a, b) => b.score - a.score)[0];
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Final scoreboard">
@@ -633,7 +749,7 @@ function renderScoreboardScreen() {
           </div>
           <p class="kicker">Champion</p>
           <h2 class="winner-line">${escapeHtml(leader.name)} wins Roast Arena</h2>
-          <p class="hero-copy">The arena has spoken. The jokes were questionable. The scoreboard was legally binding.</p>
+          <p class="hero-copy">${escapeHtml(vibe.label)} vibe, ${escapeHtml(worldRoom.label)} room. The jokes landed, the flow stayed calm, and the winner gets the clean receipt.</p>
           <div class="champion-card">
             <span class="avatar champion-avatar">${escapeHtml(initials(leader.name))}</span>
             <div>
@@ -663,6 +779,7 @@ function render() {
     verdict: renderVerdict,
     scoreboard: renderScoreboardScreen
   };
+  document.body.dataset.vibe = state.roomVibe;
   app.innerHTML = screens[state.screen]();
   bindEvents();
   if (state.screen === "submit") startRoundTimer();
@@ -673,10 +790,14 @@ function bindEvents() {
     event.preventDefault();
     const playerName = document.querySelector("#playerName").value.trim() || "You";
     const roomCode = document.querySelector("#roomCode").value.trim().toUpperCase() || "R0AST";
+    const worldRoom = document.querySelector("#worldRoom").value;
+    const judgeId = document.querySelector("#judgeSelect").value;
     const maxRounds = clampNumber(document.querySelector("#maxRounds").value, 1, 7, currentMode().rounds);
     const timeLimit = clampNumber(document.querySelector("#timeLimit").value, 20, 90, currentMode().timeLimit);
     state.playerName = playerName;
     state.roomCode = roomCode;
+    state.worldRoom = worldRooms[worldRoom] ? worldRoom : "global";
+    state.selectedJudgeId = judges.some((judge) => judge.id === judgeId) ? judgeId : "hr";
     state.maxRounds = maxRounds;
     state.timeLimit = timeLimit;
     state.timeLeft = timeLimit;
@@ -694,11 +815,28 @@ function bindEvents() {
     });
   });
 
+  document.querySelectorAll("[data-vibe]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.roomVibe = roomVibes[button.dataset.vibe] ? button.dataset.vibe : "serene";
+      render();
+    });
+  });
+
+  document.querySelector("#worldRoom")?.addEventListener("change", (event) => {
+    state.worldRoom = worldRooms[event.target.value] ? event.target.value : "global";
+    render();
+  });
+
   document.querySelectorAll("[data-judge]").forEach((button) => {
     button.addEventListener("click", () => {
       state.selectedJudgeId = button.dataset.judge;
       render();
     });
+  });
+
+  document.querySelector("#judgeSelect")?.addEventListener("change", (event) => {
+    state.selectedJudgeId = judges.some((judge) => judge.id === event.target.value) ? event.target.value : "hr";
+    render();
   });
 
   document.querySelector("#backHome")?.addEventListener("click", () => setScreen("home"));
