@@ -35,6 +35,7 @@ Current prototype flow:
 - Judge selection
 - Lobby with copyable smart invite links
 - URL-based room setup handoff for static sharing
+- Room Pulse readiness signal for calmer hosting
 - Named guest roster controls for simulated rooms
 - Prompt submission
 - Empty-answer guard and chaos answer assist
@@ -53,6 +54,7 @@ Current prototype flow:
 - Pick a room mode with its own prompt pack, timer, and scoring.
 - Copy a calm room invite with a ready-to-open room link.
 - Reopen shared room links with the selected setup already applied.
+- Read a simple room pulse before starting.
 - Add named guests to shape the party roster.
 - Play short prompt rounds.
 - Submit anonymous answers.

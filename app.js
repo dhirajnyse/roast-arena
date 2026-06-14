@@ -391,6 +391,55 @@ function pointsForWin() {
   return currentMode().points;
 }
 
+function roomPulse() {
+  const players = state.players.length;
+  const seatScore = Math.min(44, players * 11);
+  const guardScore = state.roastLevel === "gentle" ? 20 : state.roastLevel === "balanced" ? 17 : 14;
+  const paceScore = state.timeLimit <= 45 ? 18 : state.timeLimit <= 60 ? 15 : 12;
+  const roundScore = state.maxRounds <= 3 ? 18 : 14;
+  const score = Math.min(100, seatScore + guardScore + paceScore + roundScore);
+  const label = score >= 88 ? "Ready" : score >= 72 ? "Warm" : "Gathering";
+  const tone = score >= 88 ? "Start clean" : score >= 72 ? "Nearly there" : "Soft opening";
+  const pace = state.timeLimit <= 40 ? "Fast" : state.timeLimit <= 60 ? "Steady" : "Slow";
+  return {
+    score,
+    label,
+    tone,
+    signals: [
+      { label: "Seats", value: `${players}/8` },
+      { label: "Heat", value: currentComedyGuard().label },
+      { label: "Pace", value: pace }
+    ]
+  };
+}
+
+function roomPulseMarkup() {
+  const pulse = roomPulse();
+  return `
+    <div class="room-pulse" aria-label="Room pulse">
+      <div class="pulse-head">
+        <div>
+          <span class="pulse-kicker">Room Pulse</span>
+          <strong>${escapeHtml(pulse.label)}</strong>
+        </div>
+        <span class="pulse-score">${pulse.score}%</span>
+      </div>
+      <div class="pulse-track" aria-hidden="true">
+        <span class="pulse-fill" style="width: ${pulse.score}%"></span>
+      </div>
+      <div class="pulse-signals">
+        ${pulse.signals.map((signal) => `
+          <span class="pulse-signal">
+            <strong>${escapeHtml(signal.value)}</strong>
+            <em>${escapeHtml(signal.label)}</em>
+          </span>
+        `).join("")}
+      </div>
+      <p>${escapeHtml(pulse.tone)}</p>
+    </div>
+  `;
+}
+
 function roomSummaryMarkup() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
@@ -619,6 +668,7 @@ function buildInviteUrl() {
 function buildInviteText() {
   const recipe = currentRecipe();
   const inviteUrl = buildInviteUrl();
+  const pulse = roomPulse();
   return [
     "Roast Arena invite",
     `Room: ${state.roomCode}`,
@@ -628,6 +678,7 @@ function buildInviteText() {
     `World room: ${currentWorldRoom().label}`,
     `Comedy guard: ${currentComedyGuard().label}`,
     `Rounds: ${state.maxRounds} x ${state.timeLimit}s`,
+    `Room pulse: ${pulse.label} (${pulse.score}%)`,
     "",
     "Bring one clever answer. Keep it funny, not cruel."
   ].join("\n");
@@ -838,6 +889,7 @@ function renderLobby() {
             <div class="stat"><strong>${state.timeLimit}</strong><span>Seconds</span></div>
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
+          ${roomPulseMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
           <div class="host-cue">
             <span>${escapeHtml(vibe.label)} host cue</span>
