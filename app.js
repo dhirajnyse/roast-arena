@@ -339,6 +339,28 @@ function clampNumber(value, min, max, fallback) {
   return Math.min(max, Math.max(min, Math.round(number)));
 }
 
+function cleanRoomCode(value) {
+  const code = String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 8);
+  return code || "R0AST";
+}
+
+function cleanPlayerName(value, fallback = "You") {
+  const name = String(value || "").trim().slice(0, 18);
+  return name || fallback;
+}
+
+function validKey(collection, key, fallback) {
+  return Object.prototype.hasOwnProperty.call(collection, key) ? key : fallback;
+}
+
+function validJudgeId(id, fallback = "auntie") {
+  return judges.some((judge) => judge.id === id) ? id : fallback;
+}
+
 function applyModeDefaults(modeId) {
   const mode = gameModes[modeId] || gameModes.classic;
   state.mode = gameModes[modeId] ? modeId : "classic";
@@ -410,6 +432,34 @@ function resetGame() {
   state.notice = "";
   state.history = [];
   state.players = state.players.map((player) => ({ ...player, score: 0 }));
+}
+
+function hydrateInviteFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.has("room")) return;
+
+  const recipeId = params.get("recipe");
+  if (roomRecipes[recipeId]) {
+    applyRoomRecipe(recipeId);
+  } else {
+    state.selectedRecipeId = "custom";
+  }
+
+  state.roomCode = cleanRoomCode(params.get("room"));
+  state.playerName = cleanPlayerName(params.get("name"), state.playerName);
+  state.roomVibe = validKey(roomVibes, params.get("vibe"), state.roomVibe);
+  state.worldRoom = validKey(worldRooms, params.get("world"), state.worldRoom);
+  state.mode = validKey(gameModes, params.get("mode"), state.mode);
+  state.roastLevel = validKey(comedyGuards, params.get("guard"), state.roastLevel);
+  state.selectedJudgeId = validJudgeId(params.get("judge"), state.selectedJudgeId);
+  state.maxRounds = clampNumber(params.get("rounds"), 1, 7, currentMode().rounds);
+  state.timeLimit = clampNumber(params.get("timer"), 20, 90, currentMode().timeLimit);
+  state.timeLeft = state.timeLimit;
+  state.players = state.players.map((player) => (
+    player.id === "you" ? { ...player, name: state.playerName, score: 0 } : { ...player, score: 0 }
+  ));
+  state.screen = "lobby";
+  state.notice = "Room link ready.";
 }
 
 function stopTimer() {
@@ -550,11 +600,29 @@ function buildRecapText() {
   ].join("\n");
 }
 
+function buildInviteUrl() {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("room", state.roomCode);
+  url.searchParams.set("recipe", state.selectedRecipeId);
+  url.searchParams.set("vibe", state.roomVibe);
+  url.searchParams.set("world", state.worldRoom);
+  url.searchParams.set("mode", state.mode);
+  url.searchParams.set("guard", state.roastLevel);
+  url.searchParams.set("judge", state.selectedJudgeId);
+  url.searchParams.set("rounds", String(state.maxRounds));
+  url.searchParams.set("timer", String(state.timeLimit));
+  return url.toString();
+}
+
 function buildInviteText() {
   const recipe = currentRecipe();
+  const inviteUrl = buildInviteUrl();
   return [
     "Roast Arena invite",
     `Room: ${state.roomCode}`,
+    `Link: ${inviteUrl}`,
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
@@ -612,7 +680,7 @@ function copyInvite() {
   const text = buildInviteText();
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text)
-      .then(() => setInviteStatus("Invite copied."))
+      .then(() => setInviteStatus("Smart invite copied."))
       .catch(() => fallbackCopy(text, setInviteStatus));
     return;
   }
@@ -985,8 +1053,8 @@ function render() {
 function bindEvents() {
   document.querySelector("#setupForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const playerName = document.querySelector("#playerName").value.trim() || "You";
-    const roomCode = document.querySelector("#roomCode").value.trim().toUpperCase() || "R0AST";
+    const playerName = cleanPlayerName(document.querySelector("#playerName").value);
+    const roomCode = cleanRoomCode(document.querySelector("#roomCode").value);
     const worldRoom = document.querySelector("#worldRoom").value;
     const judgeId = document.querySelector("#judgeSelect").value;
     const roastLevel = document.querySelector("#guardSelect").value;
@@ -994,9 +1062,9 @@ function bindEvents() {
     const timeLimit = clampNumber(document.querySelector("#timeLimit").value, 20, 90, currentMode().timeLimit);
     state.playerName = playerName;
     state.roomCode = roomCode;
-    state.worldRoom = worldRooms[worldRoom] ? worldRoom : "global";
-    state.selectedJudgeId = judges.some((judge) => judge.id === judgeId) ? judgeId : "hr";
-    state.roastLevel = comedyGuards[roastLevel] ? roastLevel : "gentle";
+    state.worldRoom = validKey(worldRooms, worldRoom, "global");
+    state.selectedJudgeId = validJudgeId(judgeId, "hr");
+    state.roastLevel = validKey(comedyGuards, roastLevel, "gentle");
     state.maxRounds = maxRounds;
     state.timeLimit = timeLimit;
     state.timeLeft = timeLimit;
@@ -1016,13 +1084,13 @@ function bindEvents() {
 
   document.querySelector("#worldRoom")?.addEventListener("change", (event) => {
     markCustomRecipe();
-    state.worldRoom = worldRooms[event.target.value] ? event.target.value : "global";
+    state.worldRoom = validKey(worldRooms, event.target.value, "global");
     render();
   });
 
   document.querySelector("#vibeSelect")?.addEventListener("change", (event) => {
     markCustomRecipe();
-    state.roomVibe = roomVibes[event.target.value] ? event.target.value : "serene";
+    state.roomVibe = validKey(roomVibes, event.target.value, "serene");
     render();
   });
 
@@ -1034,13 +1102,13 @@ function bindEvents() {
 
   document.querySelector("#guardSelect")?.addEventListener("change", (event) => {
     markCustomRecipe();
-    state.roastLevel = comedyGuards[event.target.value] ? event.target.value : "gentle";
+    state.roastLevel = validKey(comedyGuards, event.target.value, "gentle");
     render();
   });
 
   document.querySelector("#judgeSelect")?.addEventListener("change", (event) => {
     markCustomRecipe();
-    state.selectedJudgeId = judges.some((judge) => judge.id === event.target.value) ? event.target.value : "hr";
+    state.selectedJudgeId = validJudgeId(event.target.value, "hr");
     render();
   });
 
@@ -1203,4 +1271,5 @@ function continueGame() {
   setScreen("submit");
 }
 
+hydrateInviteFromUrl();
 render();
