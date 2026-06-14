@@ -30,6 +30,7 @@ Current prototype flow:
 - Comedy Guard levels for Gentle, Balanced, and Bold rooms
 - Serene, Luminous, and Studio room vibes
 - World room profiles for global party taste
+- Prompt Studio Lite flavors for Social Spark, Work-Safe, and Absurd Glow
 - Mode rules for Classic, Duel, and Court
 - Host-controlled round count and timer length
 - Judge selection
@@ -50,6 +51,7 @@ Current prototype flow:
 - Pick a Comedy Guard level for the audience.
 - Pick a calm room vibe.
 - Pick a global room profile.
+- Pick a prompt flavor for the room.
 - Pick a judge personality.
 - Pick a room mode with its own prompt pack, timer, and scoring.
 - Copy a calm room invite with a ready-to-open room link.

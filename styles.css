@@ -655,6 +655,7 @@ h2 {
   box-shadow: 0 0 0 3px rgba(111, 214, 232, 0.2);
 }
 
+.flavor-grid,
 .recipe-grid,
 .stats-grid,
 .tune-grid,
@@ -663,6 +664,7 @@ h2 {
   gap: 10px;
 }
 
+.flavor-grid,
 .recipe-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -715,6 +717,7 @@ h2 {
   box-shadow: 0 12px 24px rgba(72, 98, 122, 0.12);
 }
 
+.flavor-choice,
 .recipe-choice {
   min-height: 74px;
 }
@@ -1280,6 +1283,7 @@ h2 {
   }
 
   .home-layout,
+  .flavor-grid,
   .identity-grid,
   .guest-row,
   .pulse-signals,

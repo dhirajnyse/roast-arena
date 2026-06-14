@@ -56,6 +56,75 @@ const promptPacks = {
   ]
 };
 
+const promptFlavors = {
+  social: {
+    label: "Social Spark",
+    helper: "Friend table",
+    cue: "Everyday banter for birthdays, reunions, and group chats.",
+    prompts: {
+      classic: [
+        "Write a group chat announcement for a friendship committee nobody elected.",
+        "Invent an award this friend group would absolutely give itself.",
+        "Pitch a party theme that sounds fun until the planning starts."
+      ],
+      duel: [
+        "Describe your rival's party planning style as a suspicious app notification.",
+        "Roast your rival's imaginary excuse for arriving late.",
+        "Write the toast your rival would give after misunderstanding the assignment."
+      ],
+      court: [
+        "Present evidence that your friend group needs a snack-based constitution.",
+        "Defend the person who always says 'five minutes' with full legal confidence.",
+        "Call a witness to explain why the group chat has too many opinions."
+      ]
+    }
+  },
+  workSafe: {
+    label: "Work-Safe",
+    helper: "Team rooms",
+    cue: "Clean, polished prompts for teams, offsites, and mixed audiences.",
+    prompts: {
+      classic: [
+        "Pitch the most unnecessary office productivity ritual.",
+        "Write a launch plan for a spreadsheet that thinks it is famous.",
+        "Invent a corporate award for surviving another calendar invite."
+      ],
+      duel: [
+        "Write a polite performance review for your rival's imaginary calendar.",
+        "Roast your rival's meeting notes without triggering HR.",
+        "Describe your rival as a dashboard metric nobody understands."
+      ],
+      court: [
+        "Defend a meeting that could have been a sticker.",
+        "Present evidence that the team snack table needs stronger governance.",
+        "Deliver closing arguments for a project name that got out of hand."
+      ]
+    }
+  },
+  absurd: {
+    label: "Absurd Glow",
+    helper: "Surreal jokes",
+    cue: "Stranger setups for creator rooms and late-night nonsense.",
+    prompts: {
+      classic: [
+        "Explain why a cloud has started charging rent.",
+        "Pitch a luxury spa for emotionally exhausted houseplants.",
+        "Write a warning label for a sandwich with main-character energy."
+      ],
+      duel: [
+        "Roast your rival as if they were a fridge with a podcast.",
+        "Describe your rival's aura as a rejected cereal mascot.",
+        "Write a magical curse that only affects their Wi-Fi confidence."
+      ],
+      court: [
+        "Put a dramatic moon on trial for poor lighting choices.",
+        "Defend a haunted elevator that insists it is networking.",
+        "Present evidence that a chair has been gossiping after midnight."
+      ]
+    }
+  }
+};
+
 const roomVibes = {
   serene: {
     label: "Serene",
@@ -142,6 +211,7 @@ const roomRecipes = {
     roomVibe: "serene",
     worldRoom: "global",
     mode: "classic",
+    promptFlavor: "social",
     selectedJudgeId: "auntie",
     roastLevel: "gentle",
     maxRounds: 3,
@@ -154,6 +224,7 @@ const roomRecipes = {
     roomVibe: "luminous",
     worldRoom: "singapore",
     mode: "court",
+    promptFlavor: "workSafe",
     selectedJudgeId: "hr",
     roastLevel: "gentle",
     maxRounds: 3,
@@ -166,6 +237,7 @@ const roomRecipes = {
     roomVibe: "studio",
     worldRoom: "newyork",
     mode: "duel",
+    promptFlavor: "absurd",
     selectedJudgeId: "ceo",
     roastLevel: "bold",
     maxRounds: 5,
@@ -268,6 +340,7 @@ const state = {
   mode: "classic",
   roomVibe: "serene",
   worldRoom: "global",
+  promptFlavor: "social",
   selectedRecipeId: "calmFriends",
   selectedJudgeId: "auntie",
   roastLevel: "gentle",
@@ -316,6 +389,10 @@ function currentWorldRoom() {
   return worldRooms[state.worldRoom] || worldRooms.global;
 }
 
+function currentPromptFlavor() {
+  return promptFlavors[state.promptFlavor] || promptFlavors.social;
+}
+
 function currentRecipe() {
   return roomRecipes[state.selectedRecipeId] || null;
 }
@@ -329,7 +406,9 @@ function currentBotAnswers() {
 }
 
 function activePrompt() {
-  const prompts = promptPacks[state.mode] || promptPacks.classic;
+  const flavor = currentPromptFlavor();
+  const flavorPrompts = flavor.prompts[state.mode] || flavor.prompts.classic || [];
+  const prompts = [...flavorPrompts, ...(promptPacks[state.mode] || promptPacks.classic)];
   return prompts[state.promptIndex % prompts.length];
 }
 
@@ -376,6 +455,7 @@ function applyRoomRecipe(recipeId) {
   state.roomVibe = recipe.roomVibe;
   state.worldRoom = recipe.worldRoom;
   state.mode = recipe.mode;
+  state.promptFlavor = recipe.promptFlavor;
   state.selectedJudgeId = recipe.selectedJudgeId;
   state.roastLevel = recipe.roastLevel;
   state.maxRounds = recipe.maxRounds;
@@ -443,6 +523,7 @@ function roomPulseMarkup() {
 function roomSummaryMarkup() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const flavor = currentPromptFlavor();
   const recipe = currentRecipe();
   const guard = currentComedyGuard();
   return `
@@ -450,6 +531,7 @@ function roomSummaryMarkup() {
       <span>${escapeHtml(recipe ? recipe.label : "Custom")} Recipe</span>
       <span>${escapeHtml(vibe.label)} Vibe</span>
       <span>${escapeHtml(worldRoom.label)} Room</span>
+      <span>${escapeHtml(flavor.label)} Prompts</span>
       <span>${escapeHtml(guard.label)} Guard</span>
       <span>${state.maxRounds} Rounds</span>
     </div>
@@ -499,6 +581,7 @@ function hydrateInviteFromUrl() {
   state.roomVibe = validKey(roomVibes, params.get("vibe"), state.roomVibe);
   state.worldRoom = validKey(worldRooms, params.get("world"), state.worldRoom);
   state.mode = validKey(gameModes, params.get("mode"), state.mode);
+  state.promptFlavor = validKey(promptFlavors, params.get("flavor"), state.promptFlavor);
   state.roastLevel = validKey(comedyGuards, params.get("guard"), state.roastLevel);
   state.selectedJudgeId = validJudgeId(params.get("judge"), state.selectedJudgeId);
   state.maxRounds = clampNumber(params.get("rounds"), 1, 7, currentMode().rounds);
@@ -658,6 +741,7 @@ function buildInviteUrl() {
   url.searchParams.set("vibe", state.roomVibe);
   url.searchParams.set("world", state.worldRoom);
   url.searchParams.set("mode", state.mode);
+  url.searchParams.set("flavor", state.promptFlavor);
   url.searchParams.set("guard", state.roastLevel);
   url.searchParams.set("judge", state.selectedJudgeId);
   url.searchParams.set("rounds", String(state.maxRounds));
@@ -668,6 +752,7 @@ function buildInviteUrl() {
 function buildInviteText() {
   const recipe = currentRecipe();
   const inviteUrl = buildInviteUrl();
+  const flavor = currentPromptFlavor();
   const pulse = roomPulse();
   return [
     "Roast Arena invite",
@@ -676,6 +761,7 @@ function buildInviteText() {
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
+    `Prompt flavor: ${flavor.label}`,
     `Comedy guard: ${currentComedyGuard().label}`,
     `Rounds: ${state.maxRounds} x ${state.timeLimit}s`,
     `Room pulse: ${pulse.label} (${pulse.score}%)`,
@@ -754,6 +840,7 @@ function renderHome() {
   const worldRoom = currentWorldRoom();
   const recipe = currentRecipe();
   const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
   return shellMarkup(`
     <section class="home-layout">
       <div>
@@ -790,6 +877,18 @@ function renderHome() {
             `).join("")}
           </div>
           <p class="field-note">${escapeHtml(recipe ? recipe.brief : "Custom room: your fine-tuned setup is ready.")}</p>
+        </div>
+        <div class="field">
+          <label>Prompt Studio</label>
+          <div class="flavor-grid">
+            ${Object.entries(promptFlavors).map(([id, item]) => `
+              <button class="choice flavor-choice ${state.promptFlavor === id ? "active" : ""}" type="button" data-flavor="${id}">
+                <strong>${escapeHtml(item.label)}</strong>
+                <span>${escapeHtml(item.helper)}</span>
+              </button>
+            `).join("")}
+          </div>
+          <p class="field-note">${escapeHtml(flavor.cue)}</p>
         </div>
         <div class="tune-grid">
           <div class="field">
@@ -860,6 +959,7 @@ function renderLobby() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
   const inviteText = buildInviteText();
   return shellMarkup(`
     <section class="arena-grid">
@@ -894,6 +994,10 @@ function renderLobby() {
           <div class="host-cue">
             <span>${escapeHtml(vibe.label)} host cue</span>
             <p>${escapeHtml(vibe.hostCue)}</p>
+          </div>
+          <div class="host-cue prompt-cue">
+            <span>${escapeHtml(flavor.label)} prompt studio</span>
+            <p>${escapeHtml(flavor.cue)}</p>
           </div>
           <div class="host-cue guard-cue">
             <span>${escapeHtml(guard.label)} comedy guard</span>
@@ -1130,6 +1234,14 @@ function bindEvents() {
   document.querySelectorAll("[data-recipe]").forEach((button) => {
     button.addEventListener("click", () => {
       applyRoomRecipe(button.dataset.recipe);
+      render();
+    });
+  });
+
+  document.querySelectorAll("[data-flavor]").forEach((button) => {
+    button.addEventListener("click", () => {
+      markCustomRecipe();
+      state.promptFlavor = validKey(promptFlavors, button.dataset.flavor, "social");
       render();
     });
   });
