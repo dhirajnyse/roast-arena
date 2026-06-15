@@ -406,6 +406,7 @@ const state = {
   winner: null,
   verdict: "",
   notice: "",
+  focusMode: false,
   history: [],
   players: [
     { id: "you", name: "You", score: 0, bot: false },
@@ -614,6 +615,7 @@ function resetGame() {
   state.winner = null;
   state.verdict = "";
   state.notice = "";
+  state.focusMode = false;
   state.history = [];
   state.players = state.players.map((player) => ({ ...player, score: 0 }));
 }
@@ -1396,7 +1398,7 @@ function renderSubmit() {
   const guard = currentComedyGuard();
   const compass = buildRoastCompass();
   return shellMarkup(`
-    <section class="arena-grid">
+    <section class="arena-grid ${state.focusMode ? "focus-mode" : ""}">
       <aside class="sidebar" aria-label="Scoreboard">
         <div class="sidebar-header">
           <h2>Scoreboard</h2>
@@ -1445,6 +1447,7 @@ function renderSubmit() {
           <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
           <div class="controls">
             <button class="button hot" id="submitAnswer">Submit Roast</button>
+            <button class="button secondary" id="toggleFocus">${state.focusMode ? "Show Scoreboard" : "Calm Focus"}</button>
             <button class="button secondary" id="compassStarter">Use Starter</button>
             <button class="button secondary" id="chaosAnswer">Use Chaos Answer</button>
             <button class="button ghost" id="skipToVote">Simulate Everyone</button>
@@ -1676,6 +1679,7 @@ function bindEvents() {
   document.querySelector("#addBot")?.addEventListener("click", addBot);
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
+  document.querySelector("#toggleFocus")?.addEventListener("click", toggleFocusMode);
   document.querySelector("#compassStarter")?.addEventListener("click", useCompassStarter);
   document.querySelector("#chaosAnswer")?.addEventListener("click", useChaosAnswer);
   document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer(true));
@@ -1801,6 +1805,19 @@ function useChaosAnswer() {
   input.value = answers[state.promptIndex % answers.length];
   updateCharCount();
   input.focus();
+}
+
+function toggleFocusMode() {
+  const input = document.querySelector("#answerInput");
+  const draft = input ? input.value : "";
+  state.focusMode = !state.focusMode;
+  render();
+  const nextInput = document.querySelector("#answerInput");
+  if (!nextInput) return;
+  nextInput.value = draft;
+  updateCharCount();
+  nextInput.focus();
+  nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length);
 }
 
 function applyEncorePlan() {

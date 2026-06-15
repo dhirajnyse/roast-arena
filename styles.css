@@ -228,6 +228,46 @@ h2 {
   gap: 18px;
 }
 
+.arena-grid.focus-mode {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.arena-grid.focus-mode .sidebar {
+  display: none;
+}
+
+.arena-grid.focus-mode .stage {
+  min-height: 640px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(236, 252, 255, 0.72));
+}
+
+.arena-grid.focus-mode .prompt-card,
+.arena-grid.focus-mode .round-shell {
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
+.arena-grid.focus-mode .prompt-card {
+  padding: 24px;
+}
+
+.arena-grid.focus-mode .round-shell {
+  min-height: auto;
+}
+
+.arena-grid.focus-mode .answer-input {
+  min-height: 152px;
+}
+
+.arena-grid.focus-mode .compass-chips,
+.arena-grid.focus-mode .laugh-signals {
+  display: none;
+}
+
+.arena-grid.focus-mode .controls {
+  justify-content: center;
+}
+
 .sidebar,
 .stage {
   min-height: 640px;
@@ -1628,6 +1668,10 @@ h2 {
 
   .sidebar,
   .stage {
+    min-height: auto;
+  }
+
+  .arena-grid.focus-mode .stage {
     min-height: auto;
   }
 }
