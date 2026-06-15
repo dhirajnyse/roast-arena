@@ -730,6 +730,73 @@ h2 {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(239, 250, 245, 0.86));
 }
 
+.quick-launch-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(111, 214, 232, 0.34);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(239, 250, 245, 0.76));
+}
+
+.quick-launch-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quick-launch-head span,
+.quick-launch-card span {
+  color: #247b86;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.quick-launch-head strong {
+  color: var(--ink);
+}
+
+.quick-launch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quick-launch-card {
+  min-height: 118px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 10px 22px rgba(72, 98, 122, 0.08);
+}
+
+.quick-launch-card:hover,
+.quick-launch-card:focus-visible {
+  outline: none;
+  border-color: rgba(111, 214, 232, 0.72);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 28px rgba(72, 98, 122, 0.14);
+}
+
+.quick-launch-card strong {
+  font-size: 1rem;
+}
+
+.quick-launch-card small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .hero-logo {
   width: min(360px, 78vw);
   margin-bottom: 16px;
@@ -1885,6 +1952,7 @@ h2 {
   .guest-row,
   .laugh-signals,
   .pulse-signals,
+  .quick-launch-grid,
   .recipe-grid,
   .tune-grid,
   .rules-grid,
@@ -1897,6 +1965,7 @@ h2 {
   .dna-head,
   .encore-head,
   .moment-head,
+  .quick-launch-head,
   .roadmap-item-head,
   .invite-card div {
     display: grid;

@@ -295,6 +295,27 @@ const buildLanes = [
   }
 ];
 
+const quickLaunches = [
+  {
+    recipeId: "calmFriends",
+    label: "Serene Table",
+    meta: "Gentle / Global / 3 rounds",
+    cue: "Easy first room"
+  },
+  {
+    recipeId: "globalTeam",
+    label: "Global Team",
+    meta: "Work-safe / Singapore / Court",
+    cue: "Polished group energy"
+  },
+  {
+    recipeId: "creatorNight",
+    label: "Creator Night",
+    meta: "Bold / New York / Duel",
+    cue: "Clip-ready pace"
+  }
+];
+
 const roadmapItems = [
   {
     phase: "Now",
@@ -553,6 +574,15 @@ function cleanPlayerName(value, fallback = "You") {
   return name || fallback;
 }
 
+function launchCode(recipeId) {
+  const prefix = {
+    calmFriends: "CALM",
+    globalTeam: "TEAM",
+    creatorNight: "CLIP"
+  }[recipeId] || "ROOM";
+  return cleanRoomCode(`${prefix}${Math.floor(Math.random() * 90) + 10}`);
+}
+
 function validKey(collection, key, fallback) {
   return Object.prototype.hasOwnProperty.call(collection, key) ? key : fallback;
 }
@@ -586,6 +616,24 @@ function applyRoomRecipe(recipeId) {
 
 function markCustomRecipe() {
   state.selectedRecipeId = "custom";
+}
+
+function syncPlayerName() {
+  const input = document.querySelector("#playerName");
+  state.playerName = cleanPlayerName(input ? input.value : state.playerName, state.playerName);
+  state.players = state.players.map((player) => (
+    player.id === "you" ? { ...player, name: state.playerName } : player
+  ));
+}
+
+function quickLaunchRoom(recipeId) {
+  syncPlayerName();
+  applyRoomRecipe(recipeId);
+  resetGame();
+  syncPlayerName();
+  state.roomCode = launchCode(recipeId);
+  state.notice = `${currentRecipe()?.label || "Room"} room ready.`;
+  setScreen("lobby", true);
 }
 
 function pointsForWin() {
@@ -1381,6 +1429,21 @@ function renderHome() {
           <div class="stat"><strong>${escapeHtml(worldRoom.label)}</strong><span>World Room</span></div>
           <div class="stat"><strong>${escapeHtml(guard.label)}</strong><span>Comedy Guard</span></div>
         </div>
+        <div class="quick-launch-panel" aria-label="Quick launch rooms">
+          <div class="quick-launch-head">
+            <span>Quick Launch</span>
+            <strong>Ready rooms</strong>
+          </div>
+          <div class="quick-launch-grid">
+            ${quickLaunches.map((item) => `
+              <button class="quick-launch-card" type="button" data-quick-launch="${escapeHtml(item.recipeId)}">
+                <span>${escapeHtml(item.cue)}</span>
+                <strong>${escapeHtml(item.label)}</strong>
+                <small>${escapeHtml(item.meta)}</small>
+              </button>
+            `).join("")}
+          </div>
+        </div>
       </div>
 
       <form class="setup-card" id="setupForm">
@@ -1864,6 +1927,10 @@ function bindEvents() {
       event.preventDefault();
       setScreen(link.dataset.goScreen, true);
     });
+  });
+
+  document.querySelectorAll("[data-quick-launch]").forEach((button) => {
+    button.addEventListener("click", () => quickLaunchRoom(button.dataset.quickLaunch));
   });
 
   document.querySelector("#setupForm")?.addEventListener("submit", (event) => {
