@@ -28,6 +28,7 @@ Current prototype flow:
 - Home setup
 - Temporary Build tab for release tracking
 - Temporary Roadmap page for launch planning
+- Flow Cue guidance on every stage
 - Quick Launch ready rooms for one-tap hosting
 - One-tap room recipes for faster hosting
 - Comedy Guard levels for Gentle, Balanced, and Bold rooms
@@ -59,6 +60,7 @@ Current prototype flow:
 - Create or join a party room.
 - Use the temporary Build tab to review current release direction.
 - Use the temporary Roadmap page to keep near-term product bets visible.
+- Follow the Flow Cue to keep hosting decisions simple.
 - Start a polished room from Quick Launch.
 - Pick a one-tap room recipe.
 - Pick a Comedy Guard level for the audience.

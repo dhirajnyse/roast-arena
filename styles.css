@@ -225,6 +225,49 @@ h2 {
   box-shadow: 0 10px 24px rgba(72, 98, 122, 0.14);
 }
 
+.flow-cue {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 8px 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(111, 214, 232, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(244, 255, 247, 0.7)),
+    linear-gradient(90deg, rgba(168, 239, 196, 0.22), rgba(111, 214, 232, 0.16));
+}
+
+.flow-cue span,
+.flow-cue em {
+  color: #247b86;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.flow-cue strong {
+  display: block;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.flow-cue p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.flow-cue em {
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: rgba(168, 239, 196, 0.34);
+}
+
 .step {
   min-height: 34px;
   padding: 8px 11px;
@@ -1935,6 +1978,14 @@ h2 {
   .room-code {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .flow-cue {
+    grid-template-columns: 1fr;
+  }
+
+  .flow-cue em {
+    width: fit-content;
   }
 
   .arena-grid {

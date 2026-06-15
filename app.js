@@ -707,6 +707,98 @@ function roomSummaryMarkup() {
   `;
 }
 
+function currentFlowCue() {
+  const mode = currentMode();
+  const recipe = currentRecipe();
+  const pulse = roomPulse();
+  const leader = [...state.players].sort((a, b) => b.score - a.score)[0];
+
+  if (state.screen === "home") {
+    return {
+      label: "Flow Cue",
+      title: "A ready room can start in one tap.",
+      text: "Pick a Quick Launch room or keep tuning the table below.",
+      metric: recipe ? recipe.label : "Custom"
+    };
+  }
+
+  if (state.screen === "lobby") {
+    return {
+      label: "Flow Cue",
+      title: `${pulse.label} room, ${state.players.length}/8 seats.`,
+      text: `${mode.label} pace is set. The room code is ready for guests.`,
+      metric: state.roomCode
+    };
+  }
+
+  if (state.screen === "submit") {
+    return {
+      label: "Flow Cue",
+      title: `Round ${state.round}/${state.maxRounds}: one clean turn.`,
+      text: `${currentWorldRoom().label} room, ${currentComedyGuard().label} guard, ${pointsForWin()} points on the line.`,
+      metric: `${state.timeLimit}s`
+    };
+  }
+
+  if (state.screen === "vote") {
+    return {
+      label: "Flow Cue",
+      title: `${state.submissions.length} hidden answers are ready.`,
+      text: "Let the room pick the laugh that lands cleanest.",
+      metric: "Vote"
+    };
+  }
+
+  if (state.screen === "verdict" && state.winner) {
+    const dna = buildPunchlineDna(state.winner.text);
+    return {
+      label: "Flow Cue",
+      title: `${state.winner.playerName}'s moment is ready.`,
+      text: `${dna.verdict} DNA with a clip-ready verdict line.`,
+      metric: `${dna.score}%`
+    };
+  }
+
+  if (state.screen === "scoreboard") {
+    return {
+      label: "Flow Cue",
+      title: `${leader.name} leads with ${leader.score} points.`,
+      text: "The recap and rematch setup are ready for the next room.",
+      metric: "Done"
+    };
+  }
+
+  if (state.screen === "build") {
+    return {
+      label: "Build Cue",
+      title: "Small releases keep the product calm.",
+      text: "Track only the next useful product move.",
+      metric: "Temp"
+    };
+  }
+
+  return {
+    label: "Roadmap Cue",
+    title: "Keep the path simple.",
+    text: "Only bets that reduce hesitation stay on the roadmap.",
+    metric: "Focus"
+  };
+}
+
+function flowCueMarkup() {
+  const cue = currentFlowCue();
+  return `
+    <section class="flow-cue" aria-label="Host flow cue">
+      <span>${escapeHtml(cue.label)}</span>
+      <div>
+        <strong>${escapeHtml(cue.title)}</strong>
+        <p>${escapeHtml(cue.text)}</p>
+      </div>
+      <em>${escapeHtml(cue.metric)}</em>
+    </section>
+  `;
+}
+
 function initials(name) {
   return name.trim().slice(0, 1).toUpperCase() || "?";
 }
@@ -859,6 +951,7 @@ function headerMarkup() {
       </div>
     </header>
     ${productNavMarkup()}
+    ${flowCueMarkup()}
     ${showArenaContext ? gameStepsMarkup() : ""}
     ${showArenaContext && state.screen !== "home" ? roomSummaryMarkup() : ""}
     ${showArenaContext && state.screen !== "home" ? `
