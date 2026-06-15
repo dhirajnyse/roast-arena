@@ -26,6 +26,7 @@ No install step is required for the current static prototype.
 Current prototype flow:
 
 - Home setup
+- Funky arcade-inspired color system
 - Temporary Build tab for release tracking
 - Temporary Roadmap page for launch planning
 - Flow Cue guidance on every stage
@@ -58,6 +59,7 @@ Current prototype flow:
 ## First Build Goals
 
 - Create or join a party room.
+- Enjoy a brighter game-night visual style.
 - Use the temporary Build tab to review current release direction.
 - Use the temporary Roadmap page to keep near-term product bets visible.
 - Follow the Flow Cue to keep hosting decisions simple.
