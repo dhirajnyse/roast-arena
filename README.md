@@ -46,6 +46,7 @@ Current prototype flow:
 - Anonymous voting
 - Judge verdict
 - Punchline DNA after each winning reveal
+- Encore Plan for one-tap rematch setup
 - Final scoreboard with copyable party recap
 
 ## First Build Goals
@@ -71,6 +72,7 @@ Current prototype flow:
 - Show judge verdicts.
 - Review Punchline DNA for each winning answer.
 - Track a scoreboard.
+- Apply an Encore Plan for the next room.
 - Share a final recap after the match.
 
 ## Future Monetization

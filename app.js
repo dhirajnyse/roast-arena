@@ -991,6 +991,120 @@ function punchlineDnaMarkup(answer) {
   `;
 }
 
+function averageDnaScore() {
+  if (!state.history.length) return 0;
+  const total = state.history.reduce((sum, item) => sum + buildPunchlineDna(item.answer).score, 0);
+  return Math.round(total / state.history.length);
+}
+
+function scoreGap() {
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  return Math.max(0, (sorted[0]?.score || 0) - (sorted[1]?.score || 0));
+}
+
+function buildEncorePlan() {
+  const average = averageDnaScore();
+  const gap = scoreGap();
+  const baseWorldRoom = state.worldRoom;
+  let plan = {
+    label: "Calm Rematch",
+    cue: "Keep the same friendly table, reset the scores, and let everyone sharpen one line.",
+    setup: {
+      mode: "classic",
+      roomVibe: "serene",
+      promptFlavor: "social",
+      roastLevel: "gentle",
+      selectedJudgeId: "auntie",
+      maxRounds: 3,
+      timeLimit: 45
+    }
+  };
+
+  if (average >= 88 || gap >= pointsForWin() * 2) {
+    plan = {
+      label: "Sharp Rematch",
+      cue: "The room is warmed up. Move to faster duels with bigger swings and cleaner clips.",
+      setup: {
+        mode: "duel",
+        roomVibe: "studio",
+        promptFlavor: "absurd",
+        roastLevel: state.roastLevel === "bold" ? "bold" : "balanced",
+        selectedJudgeId: "ceo",
+        maxRounds: 5,
+        timeLimit: 35
+      }
+    };
+  } else if (average >= 68 && state.mode !== "court") {
+    plan = {
+      label: "Court Finale",
+      cue: "The jokes have shape. Give the room a cleaner dramatic finish with bigger verdicts.",
+      setup: {
+        mode: "court",
+        roomVibe: "luminous",
+        promptFlavor: state.promptFlavor === "absurd" ? "absurd" : "workSafe",
+        roastLevel: state.roastLevel === "gentle" ? "balanced" : state.roastLevel,
+        selectedJudgeId: "king",
+        maxRounds: 3,
+        timeLimit: 60
+      }
+    };
+  } else if (average < 58) {
+    plan = {
+      label: "Soft Reset",
+      cue: "Bring the room back to easy social prompts and give players more breathing room.",
+      setup: {
+        mode: "classic",
+        roomVibe: "serene",
+        promptFlavor: "social",
+        roastLevel: "gentle",
+        selectedJudgeId: "auntie",
+        maxRounds: 3,
+        timeLimit: 60
+      }
+    };
+  }
+
+  return {
+    ...plan,
+    average,
+    gap,
+    setup: {
+      ...plan.setup,
+      worldRoom: baseWorldRoom
+    },
+    chips: [
+      { label: "DNA Avg", value: average ? `${average}%` : "Fresh", cue: "Match signal" },
+      { label: "Next Mode", value: gameModes[plan.setup.mode].label, cue: `${plan.setup.maxRounds} rounds` },
+      { label: "Guard", value: comedyGuards[plan.setup.roastLevel].label, cue: `${plan.setup.timeLimit}s pace` }
+    ]
+  };
+}
+
+function encorePlanMarkup() {
+  const plan = buildEncorePlan();
+  return `
+    <div class="encore-plan" aria-label="Encore plan">
+      <div class="encore-head">
+        <div>
+          <span>Encore Plan</span>
+          <strong>${escapeHtml(plan.label)}</strong>
+        </div>
+        <button class="button secondary" id="applyEncore">Apply Encore</button>
+      </div>
+      <p>${escapeHtml(plan.cue)}</p>
+      <div class="encore-chips">
+        ${plan.chips.map((chip) => `
+          <span class="encore-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function setShareStatus(message) {
   state.notice = message;
   const status = document.querySelector("#shareStatus");
@@ -1450,6 +1564,7 @@ function renderScoreboardScreen() {
               <strong>${leader.score} points</strong>
             </div>
           </div>
+          ${encorePlanMarkup()}
           ${finalRecapMarkup()}
           <div class="controls">
             <button class="button hot" id="newGame">Run It Back</button>
@@ -1577,6 +1692,7 @@ function bindEvents() {
     resetGame();
     setScreen("home");
   });
+  document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
   document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
 
   const answerInput = document.querySelector("#answerInput");
@@ -1685,6 +1801,23 @@ function useChaosAnswer() {
   input.value = answers[state.promptIndex % answers.length];
   updateCharCount();
   input.focus();
+}
+
+function applyEncorePlan() {
+  const plan = buildEncorePlan();
+  state.selectedRecipeId = "custom";
+  state.mode = plan.setup.mode;
+  state.roomVibe = plan.setup.roomVibe;
+  state.worldRoom = plan.setup.worldRoom;
+  state.promptFlavor = plan.setup.promptFlavor;
+  state.roastLevel = plan.setup.roastLevel;
+  state.selectedJudgeId = plan.setup.selectedJudgeId;
+  state.maxRounds = plan.setup.maxRounds;
+  state.timeLimit = plan.setup.timeLimit;
+  state.timeLeft = plan.setup.timeLimit;
+  resetGame();
+  state.notice = `${plan.label} applied.`;
+  setScreen("lobby");
 }
 
 function buildSubmissions(answer) {
