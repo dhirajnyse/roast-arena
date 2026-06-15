@@ -974,6 +974,62 @@ h2 {
   background: linear-gradient(90deg, var(--cyan), var(--lime), var(--orange));
 }
 
+.roast-compass {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(168, 239, 196, 0.5);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(244, 255, 247, 0.76));
+}
+
+.compass-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compass-head span,
+.compass-chip em {
+  color: #247b86;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.compass-head strong,
+.compass-chip strong {
+  color: var(--ink);
+}
+
+.roast-compass p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.compass-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.compass-chip {
+  display: grid;
+  gap: 4px;
+  min-height: 78px;
+  padding: 10px;
+  border: 1px solid rgba(21, 34, 54, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.compass-chip small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -1297,6 +1353,7 @@ h2 {
   }
 
   .home-layout,
+  .compass-chips,
   .flavor-grid,
   .identity-grid,
   .guest-row,

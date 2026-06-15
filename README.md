@@ -40,6 +40,7 @@ Current prototype flow:
 - Copyable Host Brief for smoother room openings
 - Named guest roster controls for simulated rooms
 - Prompt submission
+- Roast Compass writing guidance and safe starter lines
 - Empty-answer guard and chaos answer assist
 - Anonymous voting
 - Judge verdict
@@ -61,6 +62,7 @@ Current prototype flow:
 - Copy a host brief before starting the room.
 - Add named guests to shape the party roster.
 - Play short prompt rounds.
+- Use Roast Compass to shape a sharper, safer answer.
 - Submit anonymous answers.
 - Vote.
 - Show judge verdicts.

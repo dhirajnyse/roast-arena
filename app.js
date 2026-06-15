@@ -203,6 +203,57 @@ const worldRooms = {
   }
 };
 
+const promptCompass = {
+  social: {
+    label: "Relatable truth",
+    cue: "Find the group-chat truth everyone quietly recognizes.",
+    image: "a group chat that needs adult supervision",
+    evidence: "the room has formed a committee and nobody should chair it"
+  },
+  workSafe: {
+    label: "Polished jab",
+    cue: "Use a clean workplace metaphor and keep the punchline table-safe.",
+    image: "a calendar invite that promoted itself",
+    evidence: "this meeting became a dashboard before it became useful"
+  },
+  absurd: {
+    label: "Dream logic",
+    cue: "Give the setup a strange job, tiny ego, or dramatic backstory.",
+    image: "a sandwich with a personal brand",
+    evidence: "the moon asked for a performance review and brought slides"
+  }
+};
+
+const modeCompass = {
+  classic: {
+    label: "Clean turn",
+    cue: "One setup, one twist, one punchline."
+  },
+  duel: {
+    label: "Persona roast",
+    cue: "Aim at the imaginary character, not the real person."
+  },
+  court: {
+    label: "Evidence bit",
+    cue: "Sound official first, then let the logic unravel."
+  }
+};
+
+const guardCompass = {
+  gentle: {
+    label: "Warm landing",
+    cue: "Playful enough for mixed company."
+  },
+  balanced: {
+    label: "Sharp edge",
+    cue: "Point the joke at the prompt."
+  },
+  bold: {
+    label: "Big swing",
+    cue: "High energy without personal cruelty."
+  }
+};
+
 const roomRecipes = {
   calmFriends: {
     label: "Calm Friends",
@@ -789,6 +840,27 @@ function buildHostBrief() {
   ].join("\n");
 }
 
+function buildRoastCompass() {
+  const promptGuide = promptCompass[state.promptFlavor] || promptCompass.social;
+  const modeGuide = modeCompass[state.mode] || modeCompass.classic;
+  const guardGuide = guardCompass[state.roastLevel] || guardCompass.gentle;
+  const starter = state.mode === "court"
+    ? `Exhibit A: ${promptGuide.evidence}.`
+    : state.mode === "duel"
+      ? `My rival has the confidence of ${promptGuide.image}.`
+      : `This has the energy of ${promptGuide.image}.`;
+  return {
+    label: promptGuide.label,
+    cue: promptGuide.cue,
+    starter,
+    chips: [
+      { label: "Shape", value: modeGuide.label, cue: modeGuide.cue },
+      { label: "Tone", value: guardGuide.label, cue: guardGuide.cue },
+      { label: "Room", value: currentWorldRoom().label, cue: currentWorldRoom().cue }
+    ]
+  };
+}
+
 function setShareStatus(message) {
   state.notice = message;
   const status = document.querySelector("#shareStatus");
@@ -1078,6 +1150,7 @@ function renderSubmit() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
+  const compass = buildRoastCompass();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Scoreboard">
@@ -1102,6 +1175,22 @@ function renderSubmit() {
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
           <p class="room-cue">${escapeHtml(worldRoom.label)} room / ${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
+          <div class="roast-compass" aria-label="Roast compass">
+            <div class="compass-head">
+              <span>Roast Compass</span>
+              <strong>${escapeHtml(compass.label)}</strong>
+            </div>
+            <p>${escapeHtml(compass.cue)}</p>
+            <div class="compass-chips">
+              ${compass.chips.map((chip) => `
+                <span class="compass-chip">
+                  <em>${escapeHtml(chip.label)}</em>
+                  <strong>${escapeHtml(chip.value)}</strong>
+                  <small>${escapeHtml(chip.cue)}</small>
+                </span>
+              `).join("")}
+            </div>
+          </div>
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
           <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="${escapeHtml(guard.placeholder)}"></textarea>
           <div class="input-meta">
@@ -1111,6 +1200,7 @@ function renderSubmit() {
           <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
           <div class="controls">
             <button class="button hot" id="submitAnswer">Submit Roast</button>
+            <button class="button secondary" id="compassStarter">Use Starter</button>
             <button class="button secondary" id="chaosAnswer">Use Chaos Answer</button>
             <button class="button ghost" id="skipToVote">Simulate Everyone</button>
           </div>
@@ -1339,6 +1429,7 @@ function bindEvents() {
   document.querySelector("#addBot")?.addEventListener("click", addBot);
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
+  document.querySelector("#compassStarter")?.addEventListener("click", useCompassStarter);
   document.querySelector("#chaosAnswer")?.addEventListener("click", useChaosAnswer);
   document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer(true));
   document.querySelector("#continueGame")?.addEventListener("click", continueGame);
@@ -1359,9 +1450,7 @@ function bindEvents() {
   const answerInput = document.querySelector("#answerInput");
   const charCount = document.querySelector("#charCount");
   if (answerInput && charCount) {
-    answerInput.addEventListener("input", () => {
-      charCount.textContent = `${answerInput.value.length}/160`;
-    });
+    answerInput.addEventListener("input", updateCharCount);
   }
 
   document.querySelectorAll("[data-vote]").forEach((button) => {
@@ -1417,11 +1506,29 @@ function addGuest(event) {
   render();
 }
 
+function updateCharCount() {
+  const input = document.querySelector("#answerInput");
+  const charCount = document.querySelector("#charCount");
+  if (input && charCount) charCount.textContent = `${input.value.length}/160`;
+}
+
+function useCompassStarter() {
+  const input = document.querySelector("#answerInput");
+  if (!input) return;
+  input.value = buildRoastCompass().starter.slice(0, 160);
+  updateCharCount();
+  state.notice = "";
+  const error = document.querySelector("#answerError");
+  if (error) error.textContent = "";
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
 function useChaosAnswer() {
   const input = document.querySelector("#answerInput");
   const answers = currentBotAnswers();
   input.value = answers[state.promptIndex % answers.length];
-  document.querySelector("#charCount").textContent = `${input.value.length}/160`;
+  updateCharCount();
   input.focus();
 }
 
