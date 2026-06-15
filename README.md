@@ -45,6 +45,7 @@ Current prototype flow:
 - Empty-answer guard and chaos answer assist
 - Anonymous voting
 - Judge verdict
+- Punchline DNA after each winning reveal
 - Final scoreboard with copyable party recap
 
 ## First Build Goals
@@ -68,6 +69,7 @@ Current prototype flow:
 - Submit anonymous answers.
 - Vote.
 - Show judge verdicts.
+- Review Punchline DNA for each winning answer.
 - Track a scoreboard.
 - Share a final recap after the match.
 

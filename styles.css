@@ -1258,6 +1258,96 @@ h2 {
   background: rgba(232, 121, 168, 0.12);
 }
 
+.punchline-dna {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(111, 214, 232, 0.32);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(236, 252, 255, 0.68));
+}
+
+.dna-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dna-head span:first-child,
+.dna-chip em,
+.recap-dna {
+  color: #247b86;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.dna-head strong,
+.dna-score,
+.dna-chip strong {
+  color: var(--ink);
+}
+
+.dna-score {
+  display: grid;
+  min-width: 54px;
+  height: 32px;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(111, 214, 232, 0.26), rgba(168, 239, 196, 0.34));
+  font-weight: 950;
+}
+
+.dna-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(21, 34, 54, 0.08);
+}
+
+.dna-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--lime), var(--yellow));
+}
+
+.punchline-dna p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.dna-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dna-chip {
+  display: grid;
+  gap: 3px;
+  min-height: 70px;
+  padding: 10px;
+  border: 1px solid rgba(21, 34, 54, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.dna-chip.strong {
+  background: rgba(168, 239, 196, 0.26);
+}
+
+.dna-chip.warm {
+  background: rgba(247, 221, 136, 0.28);
+}
+
+.dna-chip small {
+  color: var(--muted);
+  line-height: 1.3;
+}
+
 .verdict-panel,
 .champion-panel {
   position: relative;
@@ -1355,6 +1445,13 @@ h2 {
   color: var(--muted);
 }
 
+.recap-dna {
+  justify-self: start;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(111, 214, 232, 0.12);
+}
+
 .confetti {
   position: absolute;
   inset: 0;
@@ -1444,6 +1541,7 @@ h2 {
 
   .home-layout,
   .compass-chips,
+  .dna-chips,
   .flavor-grid,
   .identity-grid,
   .guest-row,
@@ -1457,6 +1555,7 @@ h2 {
   }
 
   .host-brief div,
+  .dna-head,
   .invite-card div {
     display: grid;
   }

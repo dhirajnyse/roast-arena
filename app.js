@@ -748,16 +748,20 @@ function finalRecapMarkup() {
   if (!state.history.length) return "";
   return `
     <div class="recap-list" aria-label="Round recap">
-      ${state.history.map((item) => `
-        <article class="recap-item">
-          <div>
-            <span>Round ${item.round} / ${escapeHtml(item.mode)}</span>
-            <strong>${escapeHtml(item.playerName)} +${item.points}</strong>
-          </div>
-          <p>${escapeHtml(item.prompt)}</p>
-          <blockquote>${escapeHtml(item.answer)}</blockquote>
-        </article>
-      `).join("")}
+      ${state.history.map((item) => {
+        const dna = buildPunchlineDna(item.answer);
+        return `
+          <article class="recap-item">
+            <div>
+              <span>Round ${item.round} / ${escapeHtml(item.mode)}</span>
+              <strong>${escapeHtml(item.playerName)} +${item.points}</strong>
+            </div>
+            <p>${escapeHtml(item.prompt)}</p>
+            <blockquote>${escapeHtml(item.answer)}</blockquote>
+            <span class="recap-dna">DNA ${dna.score}% / ${escapeHtml(dna.verdict)}</span>
+          </article>
+        `;
+      }).join("")}
     </div>
   `;
 }
@@ -766,9 +770,10 @@ function buildRecapText() {
   const sorted = [...state.players].sort((a, b) => b.score - a.score);
   const leader = sorted[0];
   const scoreLines = sorted.map((player, index) => `${index + 1}. ${player.name} - ${player.score} pts`);
-  const roundLines = state.history.map((item) => (
-    `R${item.round}: ${item.playerName} won ${item.points} pts with "${item.answer}"`
-  ));
+  const roundLines = state.history.map((item) => {
+    const dna = buildPunchlineDna(item.answer);
+    return `R${item.round}: ${item.playerName} won ${item.points} pts with "${item.answer}" - DNA ${dna.score}% (${dna.verdict})`;
+  });
   return [
     `Roast Arena recap - ${state.roomCode}`,
     `Mode: ${currentMode().label}`,
@@ -925,6 +930,57 @@ function laughSignalMarkup(signal = buildLaughSignal()) {
       <div class="laugh-signals" id="laughSignalChips">
         ${signal.signals.map((item) => `
           <span class="laugh-chip ${escapeHtml(item.level)}">
+            <em>${escapeHtml(item.label)}</em>
+            <strong>${escapeHtml(item.value)}</strong>
+            <small>${escapeHtml(item.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function buildPunchlineDna(answer) {
+  const signal = buildLaughSignal(answer);
+  const strongCount = signal.signals.filter((item) => item.level === "strong").length;
+  const verdict = signal.score >= 88
+    ? "Clean hit"
+    : signal.score >= 68
+      ? "Room-ready"
+      : "Almost there";
+  const hostCue = strongCount >= 3
+    ? "Keep the pace. Ask for one tighter swing next round."
+    : strongCount === 2
+      ? "Good laugh shape. Invite the room to sharpen the final word."
+      : "Nice spark. Remind players to add one vivid turn.";
+  return {
+    score: signal.score,
+    label: signal.label,
+    verdict,
+    cue: signal.cue,
+    hostCue,
+    signals: signal.signals
+  };
+}
+
+function punchlineDnaMarkup(answer) {
+  const dna = buildPunchlineDna(answer);
+  return `
+    <div class="punchline-dna" aria-label="Punchline DNA">
+      <div class="dna-head">
+        <div>
+          <span>Punchline DNA</span>
+          <strong>${escapeHtml(dna.verdict)}</strong>
+        </div>
+        <span class="dna-score">${dna.score}%</span>
+      </div>
+      <div class="dna-track" aria-hidden="true">
+        <span style="width: ${dna.score}%"></span>
+      </div>
+      <p>${escapeHtml(dna.hostCue)}</p>
+      <div class="dna-chips">
+        ${dna.signals.map((item) => `
+          <span class="dna-chip ${escapeHtml(item.level)}">
             <em>${escapeHtml(item.label)}</em>
             <strong>${escapeHtml(item.value)}</strong>
             <small>${escapeHtml(item.cue)}</small>
@@ -1349,6 +1405,7 @@ function renderVerdict() {
             <span>Winning answer</span>
             <p>${escapeHtml(winner.text)}</p>
           </div>
+          ${punchlineDnaMarkup(winner.text)}
           <p class="mode-note">${escapeHtml(winner.playerName)} banked ${pointsForWin()} points for this verdict.</p>
           <div class="controls">
             <button class="button hot" id="continueGame">${state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round"}</button>
