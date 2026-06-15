@@ -770,6 +770,25 @@ function buildInviteText() {
   ].join("\n");
 }
 
+function buildHostBrief() {
+  const recipe = currentRecipe();
+  const mode = currentMode();
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
+  const flavor = currentPromptFlavor();
+  const guard = currentComedyGuard();
+  const judge = currentJudge();
+  return [
+    `Host Brief - ${state.roomCode}`,
+    `Welcome to Roast Arena room ${state.roomCode}.`,
+    `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
+    `Tone: ${vibe.label}. ${vibe.hostCue}`,
+    `Guardrail: ${guard.label}. ${guard.cue}`,
+    `Judge: ${judge.name}. ${mode.label} runs ${state.maxRounds} rounds, ${state.timeLimit}s each.`,
+    "Win by making the room smile, not by making anyone small."
+  ].join("\n");
+}
+
 function setShareStatus(message) {
   state.notice = message;
   const status = document.querySelector("#shareStatus");
@@ -779,6 +798,11 @@ function setShareStatus(message) {
 function setInviteStatus(message) {
   state.notice = message;
   const status = document.querySelector("#inviteStatus");
+  if (status) status.textContent = message;
+}
+
+function setBriefStatus(message) {
+  const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
 }
 
@@ -822,6 +846,21 @@ function copyInvite() {
     return;
   }
   fallbackCopy(text, setInviteStatus);
+}
+
+function copyHostBrief() {
+  const text = buildHostBrief();
+  const fallbackBriefCopy = () => {
+    const copied = fallbackCopy(text, setBriefStatus);
+    if (!copied) setBriefStatus("Copy is blocked here. Brief text is ready above.");
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setBriefStatus("Host brief copied."))
+      .catch(fallbackBriefCopy);
+    return;
+  }
+  fallbackBriefCopy();
 }
 
 function shellMarkup(content) {
@@ -960,6 +999,8 @@ function renderLobby() {
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
   const flavor = currentPromptFlavor();
+  const recipe = currentRecipe();
+  const hostBrief = buildHostBrief();
   const inviteText = buildInviteText();
   return shellMarkup(`
     <section class="arena-grid">
@@ -1003,6 +1044,14 @@ function renderLobby() {
             <span>${escapeHtml(guard.label)} comedy guard</span>
             <p>${escapeHtml(guard.cue)}</p>
           </div>
+          <div class="host-brief" aria-label="Host brief">
+            <div>
+              <span>Host Brief</span>
+              <strong>${escapeHtml(recipe ? recipe.label : "Custom")} / ${escapeHtml(flavor.label)}</strong>
+            </div>
+            <pre>${escapeHtml(hostBrief)}</pre>
+            <p class="share-status" id="briefStatus"></p>
+          </div>
           <div class="invite-card" aria-label="Room invite">
             <div>
               <span>Invite Preview</span>
@@ -1013,6 +1062,7 @@ function renderLobby() {
           </div>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
+            <button class="button secondary" id="copyBrief">Copy Brief</button>
             <button class="button secondary" id="copyInvite">Copy Invite</button>
             <button class="button secondary" id="addBot">Add Bot</button>
             <button class="button ghost" id="backHome">Edit Setup</button>
@@ -1284,6 +1334,7 @@ function bindEvents() {
     state.timeLeft = state.timeLimit;
     setScreen("submit");
   });
+  document.querySelector("#copyBrief")?.addEventListener("click", copyHostBrief);
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);

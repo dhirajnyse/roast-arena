@@ -738,6 +738,7 @@ h2 {
   font-weight: 950;
 }
 
+.host-brief,
 .invite-card {
   display: grid;
   gap: 10px;
@@ -748,12 +749,19 @@ h2 {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.host-brief {
+  border-color: rgba(111, 214, 232, 0.34);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(236, 252, 255, 0.68));
+}
+
+.host-brief div,
 .invite-card div {
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
 
+.host-brief span,
 .invite-card span {
   color: #247b86;
   font-size: 0.76rem;
@@ -761,10 +769,12 @@ h2 {
   text-transform: uppercase;
 }
 
+.host-brief strong,
 .invite-card strong {
   color: var(--ink);
 }
 
+.host-brief pre,
 .invite-card pre {
   max-height: 132px;
   overflow: auto;
@@ -777,6 +787,10 @@ h2 {
   font: 0.82rem/1.45 ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+}
+
+.host-brief pre {
+  max-height: 156px;
 }
 
 .room-pulse {
@@ -1294,6 +1308,7 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .host-brief div,
   .invite-card div {
     display: grid;
   }

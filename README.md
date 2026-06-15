@@ -37,6 +37,7 @@ Current prototype flow:
 - Lobby with copyable smart invite links
 - URL-based room setup handoff for static sharing
 - Room Pulse readiness signal for calmer hosting
+- Copyable Host Brief for smoother room openings
 - Named guest roster controls for simulated rooms
 - Prompt submission
 - Empty-answer guard and chaos answer assist
@@ -57,6 +58,7 @@ Current prototype flow:
 - Copy a calm room invite with a ready-to-open room link.
 - Reopen shared room links with the selected setup already applied.
 - Read a simple room pulse before starting.
+- Copy a host brief before starting the room.
 - Add named guests to shape the party roster.
 - Play short prompt rounds.
 - Submit anonymous answers.
