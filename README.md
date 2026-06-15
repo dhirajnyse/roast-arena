@@ -26,6 +26,8 @@ No install step is required for the current static prototype.
 Current prototype flow:
 
 - Home setup
+- Temporary Build tab for release tracking
+- Temporary Roadmap page for launch planning
 - One-tap room recipes for faster hosting
 - Comedy Guard levels for Gentle, Balanced, and Bold rooms
 - Serene, Luminous, and Studio room vibes
@@ -54,6 +56,8 @@ Current prototype flow:
 ## First Build Goals
 
 - Create or join a party room.
+- Use the temporary Build tab to review current release direction.
+- Use the temporary Roadmap page to keep near-term product bets visible.
 - Pick a one-tap room recipe.
 - Pick a Comedy Guard level for the audience.
 - Pick a calm room vibe.

@@ -256,6 +256,72 @@ const guardCompass = {
 
 const draftWatchWords = ["ugly", "stupid", "hate", "loser", "idiot", "dumb", "trash"];
 
+const arenaScreens = ["home", "lobby", "submit", "vote", "verdict", "scoreboard"];
+const projectScreens = ["build", "roadmap"];
+
+const buildSignals = [
+  {
+    label: "Current release",
+    value: "Build tab",
+    note: "Temporary project cockpit for releases and planning."
+  },
+  {
+    label: "Prototype channel",
+    value: "GitHub Pages",
+    note: "Static, fast, and easy to preview while the game loop evolves."
+  },
+  {
+    label: "Product principle",
+    value: "Simplify",
+    note: "Every release should make the room easier to host."
+  }
+];
+
+const buildLanes = [
+  {
+    status: "Shipped",
+    title: "Moment Clip",
+    note: "Copyable highlight after every winning verdict."
+  },
+  {
+    status: "Building",
+    title: "Build + Roadmap",
+    note: "Temporary pages to track releases until launch polish is complete."
+  },
+  {
+    status: "Next",
+    title: "Host Flow Polish",
+    note: "Fewer decisions before starting, clearer defaults, calmer invite flow."
+  }
+];
+
+const roadmapItems = [
+  {
+    phase: "Now",
+    title: "Calm Room Loop",
+    text: "Keep setup, writing, voting, verdicts, recap, and rematch feeling effortless.",
+    status: "In progress"
+  },
+  {
+    phase: "Next",
+    title: "Creator-Ready Sharing",
+    text: "Turn winning moments into cleaner clips, captions, and reusable room invites.",
+    status: "Planned"
+  },
+  {
+    phase: "Scale",
+    title: "Global Rooms",
+    text: "Prepare country profiles, prompt packs, and audience-safe defaults for multi-country launch.",
+    status: "Research"
+  },
+  {
+    phase: "Platform",
+    title: "Real Multiplayer",
+    text: "Move from simulated rooms to live rooms, accounts, moderation, and deployment environments.",
+    status: "Later"
+  }
+];
+
 const roomRecipes = {
   calmFriends: {
     label: "Calm Friends",
@@ -388,6 +454,7 @@ const botAnswerPacks = {
 
 const state = {
   screen: "home",
+  lastArenaScreen: "home",
   playerName: "You",
   roomCode: "R0AST",
   mode: "classic",
@@ -600,10 +667,35 @@ function randomFrom(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-function setScreen(screen) {
+function isArenaScreen(screen) {
+  return arenaScreens.includes(screen);
+}
+
+function isProjectScreen(screen) {
+  return projectScreens.includes(screen);
+}
+
+function screenFromHash() {
+  const hash = window.location.hash.replace("#", "").toLowerCase();
+  if (projectScreens.includes(hash)) return hash;
+  if (hash === "arena") return state.lastArenaScreen;
+  return null;
+}
+
+function syncScreenHash(screen) {
+  const hash = isProjectScreen(screen) ? `#${screen}` : "#arena";
+  if (window.location.hash === hash) return;
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${hash}`);
+}
+
+function setScreen(screen, syncRoute = false) {
+  const nextScreen = isArenaScreen(screen) || isProjectScreen(screen) ? screen : "home";
   stopTimer();
-  state.screen = screen;
+  if (isArenaScreen(nextScreen)) state.lastArenaScreen = nextScreen;
+  state.screen = nextScreen;
   render();
+  window.scrollTo(0, 0);
+  if (syncRoute) syncScreenHash(nextScreen);
 }
 
 function resetGame() {
@@ -646,6 +738,7 @@ function hydrateInviteFromUrl() {
     player.id === "you" ? { ...player, name: state.playerName, score: 0 } : { ...player, score: 0 }
   ));
   state.screen = "lobby";
+  state.lastArenaScreen = "lobby";
   state.notice = "Room link ready.";
 }
 
@@ -671,9 +764,40 @@ function startRoundTimer() {
   }, 1000);
 }
 
+function productNavMarkup() {
+  const activeTab = isProjectScreen(state.screen) ? state.screen : "arena";
+  const tabs = [
+    { id: "arena", label: "Arena", screen: state.lastArenaScreen, href: "#arena" },
+    { id: "build", label: "Build", screen: "build", href: "#build", badge: "Temp" },
+    { id: "roadmap", label: "Roadmap", screen: "roadmap", href: "#roadmap" }
+  ];
+
+  return `
+    <nav class="product-tabs" aria-label="Project pages">
+      ${tabs.map((tab) => `
+        <a class="product-tab ${activeTab === tab.id ? "active" : ""}" href="${tab.href}" data-go-screen="${escapeHtml(tab.screen)}" ${activeTab === tab.id ? "aria-current=\"page\"" : ""}>
+          <span>${escapeHtml(tab.label)}</span>
+          ${tab.badge ? `<strong>${escapeHtml(tab.badge)}</strong>` : ""}
+        </a>
+      `).join("")}
+    </nav>
+  `;
+}
+
+function gameStepsMarkup() {
+  return `
+    <nav class="steps" aria-label="Game flow">
+      ${arenaScreens.map((step) => `
+        <span class="step ${state.screen === step ? "active" : ""}">${step}</span>
+      `).join("")}
+    </nav>
+  `;
+}
+
 function headerMarkup() {
   const judge = currentJudge();
   const vibe = currentVibe();
+  const showArenaContext = !isProjectScreen(state.screen);
   return `
     <header class="topbar">
       <img class="brand-mark" src="assets/logo.svg" alt="Roast Arena">
@@ -686,13 +810,10 @@ function headerMarkup() {
         <strong>${escapeHtml(state.roomCode)}</strong>
       </div>
     </header>
-    <nav class="steps" aria-label="Game flow">
-      ${["home", "lobby", "submit", "vote", "verdict", "scoreboard"].map((step) => `
-        <span class="step ${state.screen === step ? "active" : ""}">${step}</span>
-      `).join("")}
-    </nav>
-    ${state.screen !== "home" ? roomSummaryMarkup() : ""}
-    ${state.screen !== "home" ? `
+    ${productNavMarkup()}
+    ${showArenaContext ? gameStepsMarkup() : ""}
+    ${showArenaContext && state.screen !== "home" ? roomSummaryMarkup() : ""}
+    ${showArenaContext && state.screen !== "home" ? `
       <section class="judge-card">
         <div class="judge-row">
           <div>
@@ -1634,6 +1755,92 @@ function renderScoreboardScreen() {
   `);
 }
 
+function renderBuild() {
+  return shellMarkup(`
+    <section class="build-layout">
+      <div class="build-hero">
+        <p class="kicker">Temporary Build Page</p>
+        <h2 class="hero-title">A calm build board for every release.</h2>
+        <p class="hero-copy">Use this page while Roast Arena is under construction. It keeps the current release, next bet, and product principles visible without adding permanent product weight.</p>
+        <div class="temp-note">
+          <span>Temporary</span>
+          <p>Delete this Build page and the Roadmap page before the final public launch if the product no longer needs them.</p>
+        </div>
+        <div class="controls">
+          <a class="button hot" href="#roadmap" data-go-screen="roadmap">Open Roadmap</a>
+          <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Back to Arena</a>
+        </div>
+      </div>
+
+      <div class="build-status-grid">
+        ${buildSignals.map((item) => `
+          <article class="build-card">
+            <span>${escapeHtml(item.label)}</span>
+            <strong>${escapeHtml(item.value)}</strong>
+            <p>${escapeHtml(item.note)}</p>
+          </article>
+        `).join("")}
+      </div>
+
+      <section class="build-card build-lane-card" aria-label="Build lane">
+        <div class="build-section-head">
+          <div>
+            <p class="kicker">Release Lane</p>
+            <h2>What is moving now</h2>
+          </div>
+          <a class="text-link" href="#roadmap" data-go-screen="roadmap">View roadmap</a>
+        </div>
+        <div class="build-lanes">
+          ${buildLanes.map((item) => `
+            <div class="build-lane">
+              <span>${escapeHtml(item.status)}</span>
+              <strong>${escapeHtml(item.title)}</strong>
+              <p>${escapeHtml(item.note)}</p>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+    </section>
+  `);
+}
+
+function renderRoadmap() {
+  return shellMarkup(`
+    <section class="roadmap-layout">
+      <div class="build-hero roadmap-hero">
+        <p class="kicker">Temporary Roadmap Page</p>
+        <h2 class="hero-title">Simple path to a world-class room.</h2>
+        <p class="hero-copy">This roadmap stays intentionally small: improve the host loop, make moments shareable, prepare global rooms, then add real platform infrastructure when the prototype proves the fun.</p>
+        <div class="controls">
+          <a class="button secondary" href="#build" data-go-screen="build">Back to Build</a>
+          <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Open Arena</a>
+        </div>
+      </div>
+
+      <div class="roadmap-track" aria-label="Roadmap timeline">
+        ${roadmapItems.map((item) => `
+          <article class="roadmap-item">
+            <span>${escapeHtml(item.phase)}</span>
+            <div>
+              <div class="roadmap-item-head">
+                <h2>${escapeHtml(item.title)}</h2>
+                <strong>${escapeHtml(item.status)}</strong>
+              </div>
+              <p>${escapeHtml(item.text)}</p>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+
+      <section class="build-card roadmap-note">
+        <p class="kicker">Simplification Rule</p>
+        <h2>Every release should remove hesitation.</h2>
+        <p>When a new capability arrives, it should make the room easier to understand, easier to host, or easier to share. If it does not, it waits.</p>
+      </section>
+    </section>
+  `);
+}
+
 function render() {
   const screens = {
     home: renderHome,
@@ -1641,15 +1848,24 @@ function render() {
     submit: renderSubmit,
     vote: renderVote,
     verdict: renderVerdict,
-    scoreboard: renderScoreboardScreen
+    scoreboard: renderScoreboardScreen,
+    build: renderBuild,
+    roadmap: renderRoadmap
   };
   document.body.dataset.vibe = state.roomVibe;
-  app.innerHTML = screens[state.screen]();
+  app.innerHTML = (screens[state.screen] || renderHome)();
   bindEvents();
   if (state.screen === "submit") startRoundTimer();
 }
 
 function bindEvents() {
+  document.querySelectorAll("[data-go-screen]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      setScreen(link.dataset.goScreen, true);
+    });
+  });
+
   document.querySelector("#setupForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const playerName = cleanPlayerName(document.querySelector("#playerName").value);
@@ -1953,4 +2169,15 @@ function continueGame() {
 }
 
 hydrateInviteFromUrl();
+const routedScreen = screenFromHash();
+if (routedScreen) {
+  if (isArenaScreen(routedScreen)) state.lastArenaScreen = routedScreen;
+  state.screen = routedScreen;
+}
+
+window.addEventListener("hashchange", () => {
+  const nextScreen = screenFromHash();
+  if (nextScreen && nextScreen !== state.screen) setScreen(nextScreen);
+});
+
 render();
