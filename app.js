@@ -254,6 +254,8 @@ const guardCompass = {
   }
 };
 
+const draftWatchWords = ["ugly", "stupid", "hate", "loser", "idiot", "dumb", "trash"];
+
 const roomRecipes = {
   calmFriends: {
     label: "Calm Friends",
@@ -861,6 +863,78 @@ function buildRoastCompass() {
   };
 }
 
+function buildLaughSignal(text = "") {
+  const draft = text.trim();
+  const length = draft.length;
+  const lowerDraft = draft.toLowerCase();
+  const hasTwist = /\b(like|because|but|somehow|nobody|only|energy)\b|as if|plot twist|main character|main-character|exhibit a/i.test(draft);
+  const hasWatchWord = draftWatchWords.some((word) => lowerDraft.includes(word));
+  const lengthSignal = length === 0
+    ? { value: "Start", cue: "One clean image", level: "soft" }
+    : length < 35
+      ? { value: "Short", cue: "Add a turn", level: "warm" }
+      : length <= 120
+        ? { value: "Tight", cue: "Good length", level: "strong" }
+        : { value: "Long", cue: "Trim it down", level: "warm" };
+  const twistSignal = hasTwist
+    ? { value: "Clear", cue: "Punchline has a turn", level: "strong" }
+    : { value: "Add", cue: "Try like, because, or but", level: length ? "warm" : "soft" };
+  const kindnessSignal = hasWatchWord
+    ? { value: "Soften", cue: "Aim back at the prompt", level: "warm" }
+    : { value: "Safe", cue: "Table-friendly", level: "strong" };
+  const lengthScore = length === 0 ? 6 : length < 35 ? 18 : length <= 120 ? 34 : 22;
+  const twistScore = hasTwist ? 32 : length >= 35 ? 18 : 8;
+  const kindnessScore = hasWatchWord ? 12 : 30;
+  const score = Math.min(100, lengthScore + twistScore + kindnessScore);
+  const label = length === 0 ? "Listening" : score >= 88 ? "Sharp" : score >= 68 ? "Room-ready" : score >= 44 ? "Warming" : "Seed";
+  const cue = length === 0
+    ? "Start with a vivid image, then add one clean turn."
+    : score >= 88
+      ? "Strong enough. Stop before the joke gets heavier."
+      : score >= 68
+        ? "Good shape. One cleaner final word could make it land."
+        : score >= 44
+          ? "Nice seed. Add a comparison or a small surprise."
+          : "Keep it short and aim the joke at the prompt.";
+  return {
+    score,
+    label,
+    cue,
+    signals: [
+      { label: "Length", ...lengthSignal },
+      { label: "Twist", ...twistSignal },
+      { label: "Kind", ...kindnessSignal }
+    ]
+  };
+}
+
+function laughSignalMarkup(signal = buildLaughSignal()) {
+  return `
+    <div class="laugh-signal" aria-label="Laugh signal">
+      <div class="laugh-head">
+        <div>
+          <span>Laugh Signal</span>
+          <strong id="laughSignalLabel">${escapeHtml(signal.label)}</strong>
+        </div>
+        <span class="laugh-score" id="laughSignalScore">${signal.score}%</span>
+      </div>
+      <div class="laugh-track" aria-hidden="true">
+        <span id="laughSignalFill" style="width: ${signal.score}%"></span>
+      </div>
+      <p id="laughSignalCue">${escapeHtml(signal.cue)}</p>
+      <div class="laugh-signals" id="laughSignalChips">
+        ${signal.signals.map((item) => `
+          <span class="laugh-chip ${escapeHtml(item.level)}">
+            <em>${escapeHtml(item.label)}</em>
+            <strong>${escapeHtml(item.value)}</strong>
+            <small>${escapeHtml(item.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function setShareStatus(message) {
   state.notice = message;
   const status = document.querySelector("#shareStatus");
@@ -1197,6 +1271,7 @@ function renderSubmit() {
             <span id="charCount">0/160</span>
             <span>${pointsForWin()} points if picked</span>
           </div>
+          ${laughSignalMarkup()}
           <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
           <div class="controls">
             <button class="button hot" id="submitAnswer">Submit Roast</button>
@@ -1510,6 +1585,29 @@ function updateCharCount() {
   const input = document.querySelector("#answerInput");
   const charCount = document.querySelector("#charCount");
   if (input && charCount) charCount.textContent = `${input.value.length}/160`;
+  if (input) updateLaughSignal(input.value);
+}
+
+function updateLaughSignal(text) {
+  const signal = buildLaughSignal(text);
+  const label = document.querySelector("#laughSignalLabel");
+  const score = document.querySelector("#laughSignalScore");
+  const fill = document.querySelector("#laughSignalFill");
+  const cue = document.querySelector("#laughSignalCue");
+  const chips = document.querySelector("#laughSignalChips");
+  if (label) label.textContent = signal.label;
+  if (score) score.textContent = `${signal.score}%`;
+  if (fill) fill.style.width = `${signal.score}%`;
+  if (cue) cue.textContent = signal.cue;
+  if (chips) {
+    chips.innerHTML = signal.signals.map((item) => `
+      <span class="laugh-chip ${escapeHtml(item.level)}">
+        <em>${escapeHtml(item.label)}</em>
+        <strong>${escapeHtml(item.value)}</strong>
+        <small>${escapeHtml(item.cue)}</small>
+      </span>
+    `).join("");
+  }
 }
 
 function useCompassStarter() {

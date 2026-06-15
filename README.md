@@ -41,6 +41,7 @@ Current prototype flow:
 - Named guest roster controls for simulated rooms
 - Prompt submission
 - Roast Compass writing guidance and safe starter lines
+- Live Laugh Signal for draft length, twist, and kindness
 - Empty-answer guard and chaos answer assist
 - Anonymous voting
 - Judge verdict
@@ -63,6 +64,7 @@ Current prototype flow:
 - Add named guests to shape the party roster.
 - Play short prompt rounds.
 - Use Roast Compass to shape a sharper, safer answer.
+- Watch the Laugh Signal while drafting.
 - Submit anonymous answers.
 - Vote.
 - Show judge verdicts.
