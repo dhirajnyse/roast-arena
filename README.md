@@ -47,6 +47,7 @@ Current prototype flow:
 - Anonymous voting
 - Judge verdict
 - Punchline DNA after each winning reveal
+- Copyable Moment Clip for each winning reveal
 - Encore Plan for one-tap rematch setup
 - Final scoreboard with copyable party recap
 
@@ -73,6 +74,7 @@ Current prototype flow:
 - Vote.
 - Show judge verdicts.
 - Review Punchline DNA for each winning answer.
+- Copy a Moment Clip from the verdict screen.
 - Track a scoreboard.
 - Apply an Encore Plan for the next room.
 - Share a final recap after the match.

@@ -1388,6 +1388,50 @@ h2 {
   line-height: 1.3;
 }
 
+.moment-clip {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(168, 239, 196, 0.44);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(244, 255, 247, 0.72));
+}
+
+.moment-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.moment-head span,
+.moment-clip small {
+  color: #247b86;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.moment-head strong {
+  color: var(--ink);
+}
+
+.moment-clip p,
+.moment-clip blockquote {
+  margin: 0;
+}
+
+.moment-clip p {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.moment-clip blockquote {
+  padding-left: 10px;
+  border-left: 4px solid var(--lime);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .verdict-panel,
 .champion-panel {
   position: relative;
@@ -1657,6 +1701,7 @@ h2 {
   .host-brief div,
   .dna-head,
   .encore-head,
+  .moment-head,
   .invite-card div {
     display: grid;
   }

@@ -792,6 +792,24 @@ function buildRecapText() {
   ].join("\n");
 }
 
+function buildMomentClipText() {
+  const winner = state.winner;
+  if (!winner) return "";
+  const dna = buildPunchlineDna(winner.text);
+  return [
+    `Roast Arena moment - ${state.roomCode}`,
+    `Round: ${state.round}/${state.maxRounds}`,
+    `Prompt: ${activePrompt()}`,
+    `Winner: ${winner.playerName}`,
+    `Answer: "${winner.text}"`,
+    `Judge: ${state.verdict}`,
+    `Punchline DNA: ${dna.score}% (${dna.verdict})`,
+    `Host cue: ${dna.hostCue}`,
+    "",
+    "Keep it funny, not cruel."
+  ].join("\n");
+}
+
 function buildInviteUrl() {
   const url = new URL(window.location.href);
   url.search = "";
@@ -993,6 +1011,21 @@ function punchlineDnaMarkup(answer) {
   `;
 }
 
+function momentClipMarkup(winner) {
+  const dna = buildPunchlineDna(winner.text);
+  return `
+    <div class="moment-clip" aria-label="Moment clip">
+      <div class="moment-head">
+        <span>Moment Clip</span>
+        <strong>Round ${state.round} / ${escapeHtml(dna.verdict)}</strong>
+      </div>
+      <p>${escapeHtml(activePrompt())}</p>
+      <blockquote>${escapeHtml(winner.text)}</blockquote>
+      <small>DNA ${dna.score}% / ${escapeHtml(currentWorldRoom().label)} room / ${escapeHtml(currentComedyGuard().label)} guard</small>
+    </div>
+  `;
+}
+
 function averageDnaScore() {
   if (!state.history.length) return 0;
   const total = state.history.reduce((sum, item) => sum + buildPunchlineDna(item.answer).score, 0);
@@ -1124,6 +1157,12 @@ function setBriefStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setMomentStatus(message) {
+  state.notice = message;
+  const status = document.querySelector("#momentStatus");
+  if (status) status.textContent = message;
+}
+
 function fallbackCopy(text, setStatus = setShareStatus) {
   const scratch = document.createElement("textarea");
   scratch.value = text;
@@ -1153,6 +1192,17 @@ function copyRecap() {
     return;
   }
   fallbackCopy(text, setShareStatus);
+}
+
+function copyMomentClip() {
+  const text = buildMomentClipText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setMomentStatus("Moment clip copied."))
+      .catch(() => fallbackCopy(text, setMomentStatus));
+    return;
+  }
+  fallbackCopy(text, setMomentStatus);
 }
 
 function copyInvite() {
@@ -1523,11 +1573,14 @@ function renderVerdict() {
             <p>${escapeHtml(winner.text)}</p>
           </div>
           ${punchlineDnaMarkup(winner.text)}
+          ${momentClipMarkup(winner)}
           <p class="mode-note">${escapeHtml(winner.playerName)} banked ${pointsForWin()} points for this verdict.</p>
           <div class="controls">
             <button class="button hot" id="continueGame">${state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round"}</button>
+            <button class="button secondary" id="copyMoment">Copy Moment</button>
             <button class="button ghost" id="playAgain">Restart</button>
           </div>
+          <p class="share-status" id="momentStatus">${state.notice ? escapeHtml(state.notice) : ""}</p>
         </div>
       </section>
     </section>
@@ -1697,6 +1750,7 @@ function bindEvents() {
     setScreen("home");
   });
   document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
+  document.querySelector("#copyMoment")?.addEventListener("click", copyMomentClip);
   document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
 
   const answerInput = document.querySelector("#answerInput");
