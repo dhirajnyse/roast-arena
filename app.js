@@ -285,8 +285,8 @@ const buildLanes = [
   },
   {
     status: "Shipped",
-    title: "Calm Launch Ritual",
-    note: "Copyable read-aloud opening that gets the room started cleanly."
+    title: "Launch Kit",
+    note: "Unified copy cockpit for passport, ritual, invite, and host brief."
   },
   {
     status: "Next",
@@ -845,35 +845,6 @@ function buildRoomPassport() {
   };
 }
 
-function roomPassportMarkup() {
-  const passport = buildRoomPassport();
-  return `
-    <div class="room-passport" aria-label="Room passport">
-      <div class="passport-head">
-        <div>
-          <span>Room Passport</span>
-          <strong>${escapeHtml(passport.title)}</strong>
-        </div>
-        <em>${escapeHtml(passport.readiness)}</em>
-      </div>
-      <p>${escapeHtml(passport.headline)}</p>
-      <div class="passport-grid">
-        ${passport.signals.map((signal) => `
-          <span class="passport-chip">
-            <em>${escapeHtml(signal.label)}</em>
-            <strong>${escapeHtml(signal.value)}</strong>
-          </span>
-        `).join("")}
-      </div>
-      <blockquote>${escapeHtml(passport.hostLine)}</blockquote>
-      <div class="passport-actions">
-        <button class="button secondary" id="copyPassport">Copy Passport</button>
-        <span class="share-status" id="passportStatus"></span>
-      </div>
-    </div>
-  `;
-}
-
 function buildLaunchRitual() {
   const passport = buildRoomPassport();
   const mode = currentMode();
@@ -911,31 +882,56 @@ function buildLaunchRitual() {
   };
 }
 
-function launchRitualMarkup() {
+function launchKitMarkup() {
+  const passport = buildRoomPassport();
   const ritual = buildLaunchRitual();
+  const mix = currentMagicMix();
+  const worldRoom = currentWorldRoom();
+  const flavor = currentPromptFlavor();
+  const guard = currentComedyGuard();
+  const mode = currentMode();
+  const judge = currentJudge();
   return `
-    <div class="launch-ritual" aria-label="Calm launch ritual">
-      <div class="ritual-head">
+    <div class="launch-kit" aria-label="Launch kit">
+      <div class="launch-kit-head">
         <div>
-          <span>Calm Launch Ritual</span>
-          <strong>${escapeHtml(ritual.title)}</strong>
+          <span>Launch Kit</span>
+          <strong>${escapeHtml(passport.title)}</strong>
         </div>
-        <em>${escapeHtml(ritual.label)}</em>
+        <em>${escapeHtml(passport.readiness)}</em>
       </div>
-      <p>${escapeHtml(ritual.opening)}</p>
-      <div class="ritual-steps">
-        ${ritual.steps.map((step, index) => `
-          <span class="ritual-step">
-            <em>${index + 1}</em>
-            <strong>${escapeHtml(step.label)}</strong>
-            <small>${escapeHtml(step.text)}</small>
-          </span>
-        `).join("")}
+      <p>${escapeHtml(mix.label)} / ${escapeHtml(roomPaceLabel())} ${escapeHtml(mode.label)} / ${escapeHtml(guard.label)} guard</p>
+      <div class="launch-kit-grid">
+        <article class="launch-kit-card passport-card">
+          <span>Passport</span>
+          <strong>${escapeHtml(passport.headline)}</strong>
+          <small>${escapeHtml(worldRoom.label)} / ${escapeHtml(flavor.label)} / ${state.maxRounds} rounds</small>
+          <button class="button secondary" id="copyPassport">Copy Passport</button>
+          <em id="passportStatus" class="share-status"></em>
+        </article>
+        <article class="launch-kit-card ritual-card">
+          <span>Ritual</span>
+          <strong>${escapeHtml(ritual.title)}</strong>
+          <small>${escapeHtml(ritual.opening)}</small>
+          <button class="button secondary" id="copyRitual">Copy Ritual</button>
+          <em id="ritualStatus" class="share-status"></em>
+        </article>
+        <article class="launch-kit-card invite-kit-card">
+          <span>Invite</span>
+          <strong>${escapeHtml(state.roomCode)} / ${escapeHtml(worldRoom.label)}</strong>
+          <small>${escapeHtml(passport.summary)}</small>
+          <button class="button secondary" id="copyInvite">Copy Invite</button>
+          <em id="inviteStatus" class="share-status">${state.notice ? escapeHtml(state.notice) : ""}</em>
+        </article>
+        <article class="launch-kit-card brief-kit-card">
+          <span>Host Brief</span>
+          <strong>${escapeHtml(judge.name)}</strong>
+          <small>${escapeHtml(ritual.steps[0].text)}</small>
+          <button class="button secondary" id="copyBrief">Copy Brief</button>
+          <em id="briefStatus" class="share-status"></em>
+        </article>
       </div>
-      <div class="ritual-actions">
-        <button class="button secondary" id="copyRitual">Copy Ritual</button>
-        <span class="share-status" id="ritualStatus"></span>
-      </div>
+      <blockquote>${escapeHtml(passport.hostLine)}</blockquote>
     </div>
   `;
 }
@@ -2009,13 +2005,7 @@ function renderHome() {
 
 function renderLobby() {
   const mode = currentMode();
-  const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
-  const guard = currentComedyGuard();
-  const flavor = currentPromptFlavor();
-  const recipe = currentRecipe();
-  const hostBrief = buildHostBrief();
-  const inviteText = buildInviteText();
   return shellMarkup(`
     <section class="arena-grid">
       <aside class="sidebar" aria-label="Players">
@@ -2045,41 +2035,10 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${roomPulseMarkup()}
-          ${roomPassportMarkup()}
-          ${launchRitualMarkup()}
+          ${launchKitMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
-          <div class="host-cue">
-            <span>${escapeHtml(vibe.label)} host cue</span>
-            <p>${escapeHtml(vibe.hostCue)}</p>
-          </div>
-          <div class="host-cue prompt-cue">
-            <span>${escapeHtml(flavor.label)} prompt studio</span>
-            <p>${escapeHtml(flavor.cue)}</p>
-          </div>
-          <div class="host-cue guard-cue">
-            <span>${escapeHtml(guard.label)} comedy guard</span>
-            <p>${escapeHtml(guard.cue)}</p>
-          </div>
-          <div class="host-brief" aria-label="Host brief">
-            <div>
-              <span>Host Brief</span>
-              <strong>${escapeHtml(recipe ? recipe.label : "Custom")} / ${escapeHtml(flavor.label)}</strong>
-            </div>
-            <pre>${escapeHtml(hostBrief)}</pre>
-            <p class="share-status" id="briefStatus"></p>
-          </div>
-          <div class="invite-card" aria-label="Room invite">
-            <div>
-              <span>Invite Preview</span>
-              <strong>${escapeHtml(state.roomCode)} / ${escapeHtml(worldRoom.label)}</strong>
-            </div>
-            <pre>${escapeHtml(inviteText)}</pre>
-            <p class="share-status" id="inviteStatus">${state.notice ? escapeHtml(state.notice) : ""}</p>
-          </div>
           <div class="controls">
             <button class="button hot" id="startGame">Start Game</button>
-            <button class="button secondary" id="copyBrief">Copy Brief</button>
-            <button class="button secondary" id="copyInvite">Copy Invite</button>
             <button class="button secondary" id="addBot">Add Bot</button>
             <button class="button ghost" id="backHome">Edit Setup</button>
           </div>

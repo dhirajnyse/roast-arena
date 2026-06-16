@@ -31,6 +31,7 @@ Current prototype flow:
 - Magic Mix one-tap room composer
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
+- Launch Kit unified host copy cockpit
 - Temporary Build tab for release tracking
 - Temporary Roadmap page for launch planning
 - Flow Cue guidance on every stage
@@ -64,6 +65,7 @@ Current prototype flow:
 
 - Create or join a party room.
 - Use Magic Mix to tune a room in one decision.
+- Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.
 - Enjoy a brighter game-night visual style.
