@@ -285,8 +285,8 @@ const buildLanes = [
   },
   {
     status: "Shipped",
-    title: "Room Passport",
-    note: "Copyable launch summary for global-ready hosting."
+    title: "Calm Launch Ritual",
+    note: "Copyable read-aloud opening that gets the room started cleanly."
   },
   {
     status: "Next",
@@ -874,6 +874,72 @@ function roomPassportMarkup() {
   `;
 }
 
+function buildLaunchRitual() {
+  const passport = buildRoomPassport();
+  const mode = currentMode();
+  const guard = currentComedyGuard();
+  const worldRoom = currentWorldRoom();
+  const pace = roomPaceLabel();
+  const heatLine = state.roastLevel === "bold"
+    ? "Big swings are welcome, personal cruelty is not."
+    : state.roastLevel === "balanced"
+      ? "Keep it sharp, but aim at the prompt."
+      : "Keep it warm enough for the whole table.";
+  const firstMove = state.mode === "court"
+    ? "Think like a lawyer for a ridiculous case, then land one clean verdict."
+    : state.mode === "duel"
+      ? "Roast the imaginary character, not the real person across the table."
+      : "Find one funny image, one twist, and one clean ending.";
+  return {
+    label: `${pace} ${mode.label}`,
+    title: `Open ${state.roomCode} calmly`,
+    opening: `Welcome to ${state.roomCode}. This is a ${passport.title.toLowerCase()} with ${state.maxRounds} short rounds.`,
+    steps: [
+      {
+        label: "Settle",
+        text: `${worldRoom.hostLine} Take one breath before the first prompt.`
+      },
+      {
+        label: "Guardrail",
+        text: `${guard.label}: ${heatLine}`
+      },
+      {
+        label: "First Move",
+        text: firstMove
+      }
+    ]
+  };
+}
+
+function launchRitualMarkup() {
+  const ritual = buildLaunchRitual();
+  return `
+    <div class="launch-ritual" aria-label="Calm launch ritual">
+      <div class="ritual-head">
+        <div>
+          <span>Calm Launch Ritual</span>
+          <strong>${escapeHtml(ritual.title)}</strong>
+        </div>
+        <em>${escapeHtml(ritual.label)}</em>
+      </div>
+      <p>${escapeHtml(ritual.opening)}</p>
+      <div class="ritual-steps">
+        ${ritual.steps.map((step, index) => `
+          <span class="ritual-step">
+            <em>${index + 1}</em>
+            <strong>${escapeHtml(step.label)}</strong>
+            <small>${escapeHtml(step.text)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <div class="ritual-actions">
+        <button class="button secondary" id="copyRitual">Copy Ritual</button>
+        <span class="share-status" id="ritualStatus"></span>
+      </div>
+    </div>
+  `;
+}
+
 function magicMixMarkup() {
   const mix = currentMagicMix();
   return `
@@ -1314,6 +1380,7 @@ function buildInviteText() {
   const recipe = currentRecipe();
   const mix = currentMagicMix();
   const passport = buildRoomPassport();
+  const ritual = buildLaunchRitual();
   const inviteUrl = buildInviteUrl();
   const flavor = currentPromptFlavor();
   const pulse = roomPulse();
@@ -1323,6 +1390,7 @@ function buildInviteText() {
     `Link: ${inviteUrl}`,
     `Magic mix: ${mix.label}`,
     `Room passport: ${passport.title} (${passport.readiness})`,
+    `Launch ritual: ${ritual.label}`,
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
@@ -1332,6 +1400,18 @@ function buildInviteText() {
     `Room pulse: ${pulse.label} (${pulse.score}%)`,
     "",
     "Bring one clever answer. Keep it funny, not cruel."
+  ].join("\n");
+}
+
+function buildLaunchRitualText() {
+  const ritual = buildLaunchRitual();
+  return [
+    `Calm Launch Ritual - ${state.roomCode}`,
+    ritual.opening,
+    "",
+    ...ritual.steps.map((step, index) => `${index + 1}. ${step.label}: ${step.text}`),
+    "",
+    "Start the game when everyone has one clean idea."
   ].join("\n");
 }
 
@@ -1356,6 +1436,7 @@ function buildHostBrief() {
   const recipe = currentRecipe();
   const mix = currentMagicMix();
   const passport = buildRoomPassport();
+  const ritual = buildLaunchRitual();
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
@@ -1367,6 +1448,7 @@ function buildHostBrief() {
     `Welcome to Roast Arena room ${state.roomCode}.`,
     `Magic mix: ${mix.label}. ${mix.promise}`,
     `Room passport: ${passport.title}. ${passport.readiness}.`,
+    `Launch ritual: ${ritual.opening}`,
     `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
     `Tone: ${vibe.label}. ${vibe.hostCue}`,
     `Guardrail: ${guard.label}. ${guard.cue}`,
@@ -1670,6 +1752,11 @@ function setPassportStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setRitualStatus(message) {
+  const status = document.querySelector("#ritualStatus");
+  if (status) status.textContent = message;
+}
+
 function setMomentStatus(message) {
   state.notice = message;
   const status = document.querySelector("#momentStatus");
@@ -1757,6 +1844,21 @@ function copyRoomPassport() {
     return;
   }
   fallbackPassportCopy();
+}
+
+function copyLaunchRitual() {
+  const text = buildLaunchRitualText();
+  const fallbackRitualCopy = () => {
+    const copied = fallbackCopy(text, setRitualStatus);
+    if (!copied) setRitualStatus("Copy is blocked here. Ritual text is ready.");
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setRitualStatus("Launch ritual copied."))
+      .catch(fallbackRitualCopy);
+    return;
+  }
+  fallbackRitualCopy();
 }
 
 function shellMarkup(content) {
@@ -1944,6 +2046,7 @@ function renderLobby() {
           </div>
           ${roomPulseMarkup()}
           ${roomPassportMarkup()}
+          ${launchRitualMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
           <div class="host-cue">
             <span>${escapeHtml(vibe.label)} host cue</span>
@@ -2378,6 +2481,7 @@ function bindEvents() {
   document.querySelector("#copyBrief")?.addEventListener("click", copyHostBrief);
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
+  document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
