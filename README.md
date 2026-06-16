@@ -29,6 +29,7 @@ Current prototype flow:
 - Funky arcade-inspired color system
 - Brighter game-lobby neon polish
 - Magic Mix one-tap room composer
+- Room Passport copyable launch summary
 - Temporary Build tab for release tracking
 - Temporary Roadmap page for launch planning
 - Flow Cue guidance on every stage
@@ -62,6 +63,7 @@ Current prototype flow:
 
 - Create or join a party room.
 - Use Magic Mix to tune a room in one decision.
+- Copy a Room Passport for a clean global-ready room summary.
 - Enjoy a brighter game-night visual style.
 - Feel a livelier arcade UI while keeping the setup simple.
 - Use the temporary Build tab to review current release direction.

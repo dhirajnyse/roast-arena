@@ -285,8 +285,8 @@ const buildLanes = [
   },
   {
     status: "Shipped",
-    title: "Magic Mix",
-    note: "One-tap room tuning that keeps setup simple before deeper controls."
+    title: "Room Passport",
+    note: "Copyable launch summary for global-ready hosting."
   },
   {
     status: "Next",
@@ -805,6 +805,75 @@ function roomPulseMarkup() {
   `;
 }
 
+function roomAudienceLabel() {
+  if (state.roastLevel === "gentle") return "Mixed table";
+  if (state.roastLevel === "bold") return "Creator room";
+  return state.mode === "duel" ? "Close friends" : "Party table";
+}
+
+function roomPaceLabel() {
+  if (state.timeLimit <= 40) return "Fast";
+  if (state.timeLimit >= 60) return "Slow burn";
+  return "Steady";
+}
+
+function buildRoomPassport() {
+  const mix = currentMagicMix();
+  const worldRoom = currentWorldRoom();
+  const flavor = currentPromptFlavor();
+  const guard = currentComedyGuard();
+  const vibe = currentVibe();
+  const mode = currentMode();
+  const pulse = roomPulse();
+  const audience = roomAudienceLabel();
+  const pace = roomPaceLabel();
+  const readiness = pulse.score >= 88 ? "Launch ready" : pulse.score >= 72 ? "Almost ready" : "Soft launch";
+  return {
+    title: `${worldRoom.label} ${audience}`,
+    readiness,
+    headline: `${mix.label} / ${pace} ${mode.label}`,
+    summary: `${worldRoom.hostLine} ${guard.cue}`,
+    hostLine: vibe.hostCue,
+    signals: [
+      { label: "Audience", value: audience },
+      { label: "World", value: worldRoom.label },
+      { label: "Pace", value: `${state.maxRounds} x ${state.timeLimit}s` },
+      { label: "Guard", value: guard.label },
+      { label: "Prompts", value: flavor.label },
+      { label: "Pulse", value: `${pulse.score}%` }
+    ]
+  };
+}
+
+function roomPassportMarkup() {
+  const passport = buildRoomPassport();
+  return `
+    <div class="room-passport" aria-label="Room passport">
+      <div class="passport-head">
+        <div>
+          <span>Room Passport</span>
+          <strong>${escapeHtml(passport.title)}</strong>
+        </div>
+        <em>${escapeHtml(passport.readiness)}</em>
+      </div>
+      <p>${escapeHtml(passport.headline)}</p>
+      <div class="passport-grid">
+        ${passport.signals.map((signal) => `
+          <span class="passport-chip">
+            <em>${escapeHtml(signal.label)}</em>
+            <strong>${escapeHtml(signal.value)}</strong>
+          </span>
+        `).join("")}
+      </div>
+      <blockquote>${escapeHtml(passport.hostLine)}</blockquote>
+      <div class="passport-actions">
+        <button class="button secondary" id="copyPassport">Copy Passport</button>
+        <span class="share-status" id="passportStatus"></span>
+      </div>
+    </div>
+  `;
+}
+
 function magicMixMarkup() {
   const mix = currentMagicMix();
   return `
@@ -1244,6 +1313,7 @@ function buildInviteUrl() {
 function buildInviteText() {
   const recipe = currentRecipe();
   const mix = currentMagicMix();
+  const passport = buildRoomPassport();
   const inviteUrl = buildInviteUrl();
   const flavor = currentPromptFlavor();
   const pulse = roomPulse();
@@ -1252,6 +1322,7 @@ function buildInviteText() {
     `Room: ${state.roomCode}`,
     `Link: ${inviteUrl}`,
     `Magic mix: ${mix.label}`,
+    `Room passport: ${passport.title} (${passport.readiness})`,
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
@@ -1264,9 +1335,27 @@ function buildInviteText() {
   ].join("\n");
 }
 
+function buildRoomPassportText() {
+  const passport = buildRoomPassport();
+  return [
+    `Room Passport - ${state.roomCode}`,
+    `${passport.title}`,
+    `${passport.headline}`,
+    `Readiness: ${passport.readiness}`,
+    "",
+    ...passport.signals.map((signal) => `${signal.label}: ${signal.value}`),
+    "",
+    `Host line: ${passport.hostLine}`,
+    `Room note: ${passport.summary}`,
+    "",
+    "Keep it funny, global, and kind."
+  ].join("\n");
+}
+
 function buildHostBrief() {
   const recipe = currentRecipe();
   const mix = currentMagicMix();
+  const passport = buildRoomPassport();
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
@@ -1277,6 +1366,7 @@ function buildHostBrief() {
     `Host Brief - ${state.roomCode}`,
     `Welcome to Roast Arena room ${state.roomCode}.`,
     `Magic mix: ${mix.label}. ${mix.promise}`,
+    `Room passport: ${passport.title}. ${passport.readiness}.`,
     `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
     `Tone: ${vibe.label}. ${vibe.hostCue}`,
     `Guardrail: ${guard.label}. ${guard.cue}`,
@@ -1575,6 +1665,11 @@ function setBriefStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setPassportStatus(message) {
+  const status = document.querySelector("#passportStatus");
+  if (status) status.textContent = message;
+}
+
 function setMomentStatus(message) {
   state.notice = message;
   const status = document.querySelector("#momentStatus");
@@ -1647,6 +1742,21 @@ function copyHostBrief() {
     return;
   }
   fallbackBriefCopy();
+}
+
+function copyRoomPassport() {
+  const text = buildRoomPassportText();
+  const fallbackPassportCopy = () => {
+    const copied = fallbackCopy(text, setPassportStatus);
+    if (!copied) setPassportStatus("Copy is blocked here. Passport text is ready.");
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setPassportStatus("Room passport copied."))
+      .catch(fallbackPassportCopy);
+    return;
+  }
+  fallbackPassportCopy();
 }
 
 function shellMarkup(content) {
@@ -1833,6 +1943,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${roomPulseMarkup()}
+          ${roomPassportMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
           <div class="host-cue">
             <span>${escapeHtml(vibe.label)} host cue</span>
@@ -2266,6 +2377,7 @@ function bindEvents() {
   });
   document.querySelector("#copyBrief")?.addEventListener("click", copyHostBrief);
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
+  document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
