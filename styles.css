@@ -962,6 +962,125 @@ h2 {
   gap: 12px;
 }
 
+.magic-mix-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(124, 77, 255, 0.26);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 255, 0.72)),
+    linear-gradient(90deg, rgba(255, 43, 214, 0.18), rgba(0, 215, 255, 0.18), rgba(183, 255, 42, 0.14));
+  box-shadow: inset 0 -5px 0 rgba(0, 215, 255, 0.12);
+}
+
+.magic-mix-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.magic-mix-head span,
+.magic-mix-card span,
+.magic-insight span {
+  color: var(--violet);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.magic-mix-head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.magic-mix-head em {
+  padding: 7px 9px;
+  border-radius: 8px;
+  color: var(--violet);
+  background: linear-gradient(135deg, rgba(255, 225, 86, 0.58), rgba(183, 255, 42, 0.44));
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.magic-mix-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.magic-mix-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 104px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 251, 238, 0.64));
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 8px 18px rgba(124, 77, 255, 0.1);
+}
+
+.magic-mix-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--arcade-rim);
+}
+
+.magic-mix-card.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--cyan), var(--mint), var(--lime), var(--yellow));
+  box-shadow: 0 14px 28px rgba(124, 77, 255, 0.2), inset 0 -5px 0 rgba(255, 43, 214, 0.16);
+}
+
+.magic-mix-card strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.magic-mix-card small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.magic-mix-card.active small {
+  color: rgba(16, 20, 38, 0.78);
+}
+
+.magic-insight {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid rgba(54, 22, 128, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.magic-insight strong {
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.magic-insight p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 .identity-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2127,6 +2246,7 @@ h2 {
   .identity-grid,
   .guest-row,
   .laugh-signals,
+  .magic-mix-grid,
   .pulse-signals,
   .quick-launch-grid,
   .recipe-grid,
@@ -2141,6 +2261,7 @@ h2 {
   .dna-head,
   .encore-head,
   .moment-head,
+  .magic-mix-head,
   .quick-launch-head,
   .roadmap-item-head,
   .invite-card div {

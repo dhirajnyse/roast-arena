@@ -284,9 +284,9 @@ const buildLanes = [
     note: "Copyable highlight after every winning verdict."
   },
   {
-    status: "Building",
-    title: "Build + Roadmap",
-    note: "Temporary pages to track releases until launch polish is complete."
+    status: "Shipped",
+    title: "Magic Mix",
+    note: "One-tap room tuning that keeps setup simple before deeper controls."
   },
   {
     status: "Next",
@@ -315,6 +315,83 @@ const quickLaunches = [
     cue: "Clip-ready pace"
   }
 ];
+
+const magicMixes = {
+  zen: {
+    label: "Zen Start",
+    cue: "Peaceful first room",
+    promise: "Gentle jokes, calm pace, global-safe defaults.",
+    insight: "Best when the host wants everyone relaxed before the first laugh.",
+    recipeId: "calmFriends",
+    setup: {
+      roomVibe: "serene",
+      worldRoom: "global",
+      mode: "classic",
+      promptFlavor: "social",
+      selectedJudgeId: "auntie",
+      roastLevel: "gentle",
+      maxRounds: 3,
+      timeLimit: 45
+    }
+  },
+  global: {
+    label: "World Class",
+    cue: "Polished global room",
+    promise: "Work-safe energy with bigger verdict drama.",
+    insight: "Best for mixed cultures, remote teams, and professional group fun.",
+    recipeId: "globalTeam",
+    setup: {
+      roomVibe: "luminous",
+      worldRoom: "singapore",
+      mode: "court",
+      promptFlavor: "workSafe",
+      selectedJudgeId: "hr",
+      roastLevel: "gentle",
+      maxRounds: 3,
+      timeLimit: 60
+    }
+  },
+  creator: {
+    label: "Creator Glow",
+    cue: "Clip-ready pace",
+    promise: "Fast turns, bold guard, sharper judge energy.",
+    insight: "Best when the room wants replayable moments and higher tempo.",
+    recipeId: "creatorNight",
+    setup: {
+      roomVibe: "studio",
+      worldRoom: "newyork",
+      mode: "duel",
+      promptFlavor: "absurd",
+      selectedJudgeId: "ceo",
+      roastLevel: "bold",
+      maxRounds: 5,
+      timeLimit: 35
+    }
+  },
+  spark: {
+    label: "Night Spark",
+    cue: "Funky party room",
+    promise: "Brighter banter with safer chaos and quick rounds.",
+    insight: "Best for late friends, birthdays, and rooms that want playful lift.",
+    recipeId: "custom",
+    setup: {
+      roomVibe: "luminous",
+      worldRoom: "dubai",
+      mode: "classic",
+      promptFlavor: "absurd",
+      selectedJudgeId: "king",
+      roastLevel: "balanced",
+      maxRounds: 4,
+      timeLimit: 40
+    }
+  }
+};
+
+const recipeMagicMixMap = {
+  calmFriends: "zen",
+  globalTeam: "global",
+  creatorNight: "creator"
+};
 
 const roadmapItems = [
   {
@@ -483,6 +560,7 @@ const state = {
   worldRoom: "global",
   promptFlavor: "social",
   selectedRecipeId: "calmFriends",
+  selectedMixId: "zen",
   selectedJudgeId: "auntie",
   roastLevel: "gentle",
   round: 1,
@@ -537,6 +615,19 @@ function currentPromptFlavor() {
 
 function currentRecipe() {
   return roomRecipes[state.selectedRecipeId] || null;
+}
+
+function currentMagicMix() {
+  if (magicMixes[state.selectedMixId]) return magicMixes[state.selectedMixId];
+  const vibe = currentVibe();
+  const worldRoom = currentWorldRoom();
+  const guard = currentComedyGuard();
+  return {
+    label: "Custom Mix",
+    cue: "Fine-tuned by you",
+    promise: `${vibe.label} vibe, ${worldRoom.label} room, ${guard.label} guard.`,
+    insight: "Your custom setup is ready. Keep it only if every choice earns its place."
+  };
 }
 
 function currentComedyGuard() {
@@ -603,6 +694,7 @@ function applyRoomRecipe(recipeId) {
   const recipe = roomRecipes[recipeId];
   if (!recipe) return;
   state.selectedRecipeId = recipeId;
+  state.selectedMixId = recipeMagicMixMap[recipeId] || "custom";
   state.roomVibe = recipe.roomVibe;
   state.worldRoom = recipe.worldRoom;
   state.mode = recipe.mode;
@@ -614,8 +706,32 @@ function applyRoomRecipe(recipeId) {
   state.timeLeft = recipe.timeLimit;
 }
 
+function applySetup(setup) {
+  state.roomVibe = validKey(roomVibes, setup.roomVibe, state.roomVibe);
+  state.worldRoom = validKey(worldRooms, setup.worldRoom, state.worldRoom);
+  state.mode = validKey(gameModes, setup.mode, state.mode);
+  state.promptFlavor = validKey(promptFlavors, setup.promptFlavor, state.promptFlavor);
+  state.selectedJudgeId = validJudgeId(setup.selectedJudgeId, state.selectedJudgeId);
+  state.roastLevel = validKey(comedyGuards, setup.roastLevel, state.roastLevel);
+  state.maxRounds = clampNumber(setup.maxRounds, 1, 7, currentMode().rounds);
+  state.timeLimit = clampNumber(setup.timeLimit, 20, 90, currentMode().timeLimit);
+  state.timeLeft = state.timeLimit;
+}
+
+function applyMagicMix(mixId) {
+  const mix = magicMixes[mixId];
+  if (!mix) return;
+  syncPlayerName();
+  state.selectedMixId = mixId;
+  state.selectedRecipeId = roomRecipes[mix.recipeId] ? mix.recipeId : "custom";
+  applySetup(mix.setup);
+  state.notice = `${mix.label} mix applied.`;
+  render();
+}
+
 function markCustomRecipe() {
   state.selectedRecipeId = "custom";
+  state.selectedMixId = "custom";
 }
 
 function syncPlayerName() {
@@ -685,6 +801,35 @@ function roomPulseMarkup() {
         `).join("")}
       </div>
       <p>${escapeHtml(pulse.tone)}</p>
+    </div>
+  `;
+}
+
+function magicMixMarkup() {
+  const mix = currentMagicMix();
+  return `
+    <div class="magic-mix-panel" aria-label="Magic Mix room composer">
+      <div class="magic-mix-head">
+        <div>
+          <span>Magic Mix</span>
+          <strong>One-tap room tuning</strong>
+        </div>
+        <em>${escapeHtml(mix.cue)}</em>
+      </div>
+      <div class="magic-mix-grid">
+        ${Object.entries(magicMixes).map(([id, item]) => `
+          <button class="magic-mix-card ${state.selectedMixId === id ? "active" : ""}" type="button" data-magic-mix="${escapeHtml(id)}">
+            <span>${escapeHtml(item.cue)}</span>
+            <strong>${escapeHtml(item.label)}</strong>
+            <small>${escapeHtml(item.promise)}</small>
+          </button>
+        `).join("")}
+      </div>
+      <div class="magic-insight">
+        <span>${escapeHtml(mix.label)}</span>
+        <strong>${escapeHtml(mix.promise)}</strong>
+        <p>${escapeHtml(mix.insight)}</p>
+      </div>
     </div>
   `;
 }
@@ -861,6 +1006,12 @@ function hydrateInviteFromUrl() {
     applyRoomRecipe(recipeId);
   } else {
     state.selectedRecipeId = "custom";
+  }
+
+  if (params.has("mix")) {
+    state.selectedMixId = magicMixes[params.get("mix")] ? params.get("mix") : "custom";
+  } else if (!roomRecipes[recipeId]) {
+    state.selectedMixId = "custom";
   }
 
   state.roomCode = cleanRoomCode(params.get("room"));
@@ -1078,6 +1229,7 @@ function buildInviteUrl() {
   url.hash = "";
   url.searchParams.set("room", state.roomCode);
   url.searchParams.set("recipe", state.selectedRecipeId);
+  url.searchParams.set("mix", state.selectedMixId);
   url.searchParams.set("vibe", state.roomVibe);
   url.searchParams.set("world", state.worldRoom);
   url.searchParams.set("mode", state.mode);
@@ -1091,6 +1243,7 @@ function buildInviteUrl() {
 
 function buildInviteText() {
   const recipe = currentRecipe();
+  const mix = currentMagicMix();
   const inviteUrl = buildInviteUrl();
   const flavor = currentPromptFlavor();
   const pulse = roomPulse();
@@ -1098,6 +1251,7 @@ function buildInviteText() {
     "Roast Arena invite",
     `Room: ${state.roomCode}`,
     `Link: ${inviteUrl}`,
+    `Magic mix: ${mix.label}`,
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
@@ -1112,6 +1266,7 @@ function buildInviteText() {
 
 function buildHostBrief() {
   const recipe = currentRecipe();
+  const mix = currentMagicMix();
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
@@ -1121,6 +1276,7 @@ function buildHostBrief() {
   return [
     `Host Brief - ${state.roomCode}`,
     `Welcome to Roast Arena room ${state.roomCode}.`,
+    `Magic mix: ${mix.label}. ${mix.promise}`,
     `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
     `Tone: ${vibe.label}. ${vibe.hostCue}`,
     `Guardrail: ${guard.label}. ${guard.cue}`,
@@ -1540,6 +1696,7 @@ function renderHome() {
       </div>
 
       <form class="setup-card" id="setupForm">
+        ${magicMixMarkup()}
         <div class="identity-grid">
           <div class="field">
             <label for="playerName">Player name</label>
@@ -2024,6 +2181,10 @@ function bindEvents() {
 
   document.querySelectorAll("[data-quick-launch]").forEach((button) => {
     button.addEventListener("click", () => quickLaunchRoom(button.dataset.quickLaunch));
+  });
+
+  document.querySelectorAll("[data-magic-mix]").forEach((button) => {
+    button.addEventListener("click", () => applyMagicMix(button.dataset.magicMix));
   });
 
   document.querySelector("#setupForm")?.addEventListener("submit", (event) => {
