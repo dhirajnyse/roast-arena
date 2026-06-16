@@ -1081,6 +1081,131 @@ h2 {
   line-height: 1.4;
 }
 
+.zen-compact .magic-mix-panel {
+  gap: 10px;
+  padding: 12px;
+}
+
+.zen-compact .magic-mix-card {
+  min-height: 84px;
+  padding: 10px;
+}
+
+.zen-compact .magic-insight {
+  gap: 2px;
+  padding: 10px;
+}
+
+.zen-compact .magic-insight p {
+  display: none;
+}
+
+.zen-setup-preview {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgba(0, 215, 255, 0.3);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(237, 255, 249, 0.72)),
+    linear-gradient(90deg, rgba(0, 215, 255, 0.16), rgba(183, 255, 42, 0.14), rgba(255, 79, 184, 0.12));
+  box-shadow: inset 0 -5px 0 rgba(183, 255, 42, 0.14), 0 14px 30px rgba(0, 215, 255, 0.1);
+}
+
+.zen-setup-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.zen-setup-head span {
+  color: var(--magenta);
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.zen-setup-head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.zen-setup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 8px;
+}
+
+.setup-launch {
+  min-width: 164px;
+  white-space: nowrap;
+}
+
+.setup-toggle {
+  min-width: 118px;
+  white-space: nowrap;
+}
+
+.zen-setup-preview p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.zen-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.zen-setup-grid span {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(54, 22, 128, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.zen-setup-grid strong,
+.zen-setup-grid em {
+  display: block;
+  min-width: 0;
+}
+
+.zen-setup-grid strong {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.zen-setup-grid em {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.zen-setup-preview small {
+  color: var(--violet);
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.advanced-setup {
+  display: grid;
+  gap: 12px;
+  padding-top: 2px;
+}
+
 .identity-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2282,7 +2407,8 @@ h2 {
   .recipe-grid,
   .tune-grid,
   .rules-grid,
-  .stats-grid {
+  .stats-grid,
+  .zen-setup-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2292,12 +2418,23 @@ h2 {
   .moment-head,
   .magic-mix-head,
   .quick-launch-head,
-  .roadmap-item-head {
+  .roadmap-item-head,
+  .zen-setup-head {
     display: grid;
   }
 
   .launch-kit-head {
     display: grid;
+  }
+
+  .zen-setup-actions {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .setup-launch,
+  .setup-toggle {
+    width: 100%;
   }
 
   .build-hero {

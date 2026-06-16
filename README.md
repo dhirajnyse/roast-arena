@@ -29,6 +29,7 @@ Current prototype flow:
 - Funky arcade-inspired color system
 - Brighter game-lobby neon polish
 - Magic Mix one-tap room composer
+- Zen Setup collapsed advanced tuning
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -65,6 +66,7 @@ Current prototype flow:
 
 - Create or join a party room.
 - Use Magic Mix to tune a room in one decision.
+- Launch from Zen Setup without touching advanced controls.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.

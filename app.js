@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Build tab",
-    note: "Temporary project cockpit for releases and planning."
+    value: "Zen Setup",
+    note: "Collapsed tuning for faster first-room hosting."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Moment Clip",
-    note: "Copyable highlight after every winning verdict."
-  },
-  {
-    status: "Shipped",
     title: "Launch Kit",
     note: "Unified copy cockpit for passport, ritual, invite, and host brief."
   },
   {
+    status: "Shipped",
+    title: "Zen Setup",
+    note: "Advanced room tuning now opens only when the host asks for it."
+  },
+  {
     status: "Next",
-    title: "Host Flow Polish",
-    note: "Fewer decisions before starting, clearer defaults, calmer invite flow."
+    title: "Invite Polish",
+    note: "Sharper first-share flow with clearer guest expectations."
   }
 ];
 
@@ -573,6 +573,7 @@ const state = {
   verdict: "",
   notice: "",
   focusMode: false,
+  showAdvancedSetup: false,
   history: [],
   players: [
     { id: "you", name: "You", score: 0, bot: false },
@@ -706,6 +707,35 @@ function applyRoomRecipe(recipeId) {
   state.timeLeft = recipe.timeLimit;
 }
 
+function syncSetupDraft() {
+  const playerNameInput = document.querySelector("#playerName");
+  const roomCodeInput = document.querySelector("#roomCode");
+  const worldRoomInput = document.querySelector("#worldRoom");
+  const vibeInput = document.querySelector("#vibeSelect");
+  const modeInput = document.querySelector("#modeSelect");
+  const guardInput = document.querySelector("#guardSelect");
+  const judgeInput = document.querySelector("#judgeSelect");
+  const maxRoundsInput = document.querySelector("#maxRounds");
+  const timeLimitInput = document.querySelector("#timeLimit");
+
+  state.playerName = cleanPlayerName(playerNameInput ? playerNameInput.value : state.playerName, state.playerName);
+  state.roomCode = cleanRoomCode(roomCodeInput ? roomCodeInput.value : state.roomCode);
+
+  if (worldRoomInput) state.worldRoom = validKey(worldRooms, worldRoomInput.value, state.worldRoom);
+  if (vibeInput) state.roomVibe = validKey(roomVibes, vibeInput.value, state.roomVibe);
+  if (modeInput) state.mode = validKey(gameModes, modeInput.value, state.mode);
+  if (guardInput) state.roastLevel = validKey(comedyGuards, guardInput.value, state.roastLevel);
+  if (judgeInput) state.selectedJudgeId = validJudgeId(judgeInput.value, state.selectedJudgeId);
+
+  const mode = currentMode();
+  if (maxRoundsInput) state.maxRounds = clampNumber(maxRoundsInput.value, 1, 7, mode.rounds);
+  if (timeLimitInput) state.timeLimit = clampNumber(timeLimitInput.value, 20, 90, mode.timeLimit);
+  state.timeLeft = state.timeLimit;
+  state.players = state.players.map((player) => (
+    player.id === "you" ? { ...player, name: state.playerName } : player
+  ));
+}
+
 function applySetup(setup) {
   state.roomVibe = validKey(roomVibes, setup.roomVibe, state.roomVibe);
   state.worldRoom = validKey(worldRooms, setup.worldRoom, state.worldRoom);
@@ -721,7 +751,7 @@ function applySetup(setup) {
 function applyMagicMix(mixId) {
   const mix = magicMixes[mixId];
   if (!mix) return;
-  syncPlayerName();
+  syncSetupDraft();
   state.selectedMixId = mixId;
   state.selectedRecipeId = roomRecipes[mix.recipeId] ? mix.recipeId : "custom";
   applySetup(mix.setup);
@@ -965,6 +995,54 @@ function magicMixMarkup() {
   `;
 }
 
+function zenSetupPreviewMarkup() {
+  const mix = currentMagicMix();
+  const passport = buildRoomPassport();
+  const mode = currentMode();
+  const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
+  const toggleLabel = state.showAdvancedSetup ? "Hide Tuning" : "Fine Tune";
+  const toggleCue = state.showAdvancedSetup
+    ? "Advanced controls are open for this room."
+    : "Advanced controls are tucked away until needed.";
+  return `
+    <div class="zen-setup-preview" aria-label="Zen Setup room preview">
+      <div class="zen-setup-head">
+        <div>
+          <span>Zen Setup</span>
+          <strong>${escapeHtml(passport.readiness)}</strong>
+        </div>
+        <div class="zen-setup-actions">
+          <button class="button hot setup-launch" type="submit">Create Party Room</button>
+          <button class="button secondary setup-toggle" id="toggleAdvancedSetup" type="button" aria-expanded="${state.showAdvancedSetup ? "true" : "false"}">
+            ${escapeHtml(toggleLabel)}
+          </button>
+        </div>
+      </div>
+      <p>${escapeHtml(mix.promise)}</p>
+      <div class="zen-setup-grid">
+        <span>
+          <strong>${escapeHtml(passport.title)}</strong>
+          <em>Room</em>
+        </span>
+        <span>
+          <strong>${state.maxRounds} x ${state.timeLimit}s</strong>
+          <em>Pace</em>
+        </span>
+        <span>
+          <strong>${escapeHtml(guard.label)}</strong>
+          <em>Guard</em>
+        </span>
+        <span>
+          <strong>${escapeHtml(flavor.label)} / ${escapeHtml(mode.label)}</strong>
+          <em>Prompts</em>
+        </span>
+      </div>
+      <small>${escapeHtml(toggleCue)}</small>
+    </div>
+  `;
+}
+
 function roomSummaryMarkup() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
@@ -993,7 +1071,7 @@ function currentFlowCue() {
     return {
       label: "Flow Cue",
       title: "A ready room can start in one tap.",
-      text: "Pick a Quick Launch room or keep tuning the table below.",
+      text: "Pick a Quick Launch room, choose a Magic Mix, or open Fine Tune only when needed.",
       metric: recipe ? recipe.label : "Custom"
     };
   }
@@ -1903,7 +1981,7 @@ function renderHome() {
         </div>
       </div>
 
-      <form class="setup-card" id="setupForm">
+      <form class="setup-card ${state.showAdvancedSetup ? "advanced-open" : "zen-compact"}" id="setupForm">
         ${magicMixMarkup()}
         <div class="identity-grid">
           <div class="field">
@@ -1915,89 +1993,94 @@ function renderHome() {
             <input id="roomCode" maxlength="8" value="${escapeHtml(state.roomCode)}">
           </div>
         </div>
-        <div class="field">
-          <label>Room recipe</label>
-          <div class="recipe-grid">
-            ${Object.entries(roomRecipes).map(([id, item]) => `
-              <button class="choice recipe-choice ${state.selectedRecipeId === id ? "active" : ""}" type="button" data-recipe="${id}">
-                <strong>${escapeHtml(item.label)}</strong>
-                <span>${escapeHtml(item.helper)}</span>
-              </button>
-            `).join("")}
+        ${zenSetupPreviewMarkup()}
+        ${state.showAdvancedSetup ? `
+          <div class="advanced-setup" id="advancedSetup">
+            <div class="field">
+              <label>Room recipe</label>
+              <div class="recipe-grid">
+                ${Object.entries(roomRecipes).map(([id, item]) => `
+                  <button class="choice recipe-choice ${state.selectedRecipeId === id ? "active" : ""}" type="button" data-recipe="${id}">
+                    <strong>${escapeHtml(item.label)}</strong>
+                    <span>${escapeHtml(item.helper)}</span>
+                  </button>
+                `).join("")}
+              </div>
+              <p class="field-note">${escapeHtml(recipe ? recipe.brief : "Custom room: your fine-tuned setup is ready.")}</p>
+            </div>
+            <div class="field">
+              <label>Prompt Studio</label>
+              <div class="flavor-grid">
+                ${Object.entries(promptFlavors).map(([id, item]) => `
+                  <button class="choice flavor-choice ${state.promptFlavor === id ? "active" : ""}" type="button" data-flavor="${id}">
+                    <strong>${escapeHtml(item.label)}</strong>
+                    <span>${escapeHtml(item.helper)}</span>
+                  </button>
+                `).join("")}
+              </div>
+              <p class="field-note">${escapeHtml(flavor.cue)}</p>
+            </div>
+            <div class="tune-grid">
+              <div class="field">
+                <label for="worldRoom">World room</label>
+                <select id="worldRoom">
+                  ${Object.entries(worldRooms).map(([id, item]) => `
+                    <option value="${id}" ${state.worldRoom === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+                  `).join("")}
+                </select>
+              </div>
+              <div class="field">
+                <label for="vibeSelect">Vibe</label>
+                <select id="vibeSelect">
+                  ${Object.entries(roomVibes).map(([id, item]) => `
+                    <option value="${id}" ${state.roomVibe === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+                  `).join("")}
+                </select>
+              </div>
+              <div class="field">
+                <label for="modeSelect">Mode</label>
+                <select id="modeSelect">
+                  ${Object.entries(gameModes).map(([id, item]) => `
+                    <option value="${id}" ${state.mode === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+                  `).join("")}
+                </select>
+              </div>
+              <div class="field">
+                <label for="guardSelect">Comedy guard</label>
+                <select id="guardSelect">
+                  ${Object.entries(comedyGuards).map(([id, item]) => `
+                    <option value="${id}" ${state.roastLevel === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
+            <p class="field-note">${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
+            <div class="rules-grid">
+              <div class="field">
+                <label for="maxRounds">Rounds</label>
+                <input id="maxRounds" type="number" min="1" max="7" value="${state.maxRounds}">
+              </div>
+              <div class="field">
+                <label for="timeLimit">Timer seconds</label>
+                <input id="timeLimit" type="number" min="20" max="90" step="5" value="${state.timeLimit}">
+              </div>
+              <div class="rule-card">
+                <span>Win Value</span>
+                <strong>${mode.points} pts</strong>
+              </div>
+            </div>
+            <div class="field">
+              <label>Judge</label>
+              <select id="judgeSelect">
+                ${judges.map((item) => `
+                  <option value="${item.id}" ${judge.id === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>
+                `).join("")}
+              </select>
+              <p class="field-note">${escapeHtml(judge.flavor)}</p>
+            </div>
           </div>
-          <p class="field-note">${escapeHtml(recipe ? recipe.brief : "Custom room: your fine-tuned setup is ready.")}</p>
-        </div>
-        <div class="field">
-          <label>Prompt Studio</label>
-          <div class="flavor-grid">
-            ${Object.entries(promptFlavors).map(([id, item]) => `
-              <button class="choice flavor-choice ${state.promptFlavor === id ? "active" : ""}" type="button" data-flavor="${id}">
-                <strong>${escapeHtml(item.label)}</strong>
-                <span>${escapeHtml(item.helper)}</span>
-              </button>
-            `).join("")}
-          </div>
-          <p class="field-note">${escapeHtml(flavor.cue)}</p>
-        </div>
-        <div class="tune-grid">
-          <div class="field">
-            <label for="worldRoom">World room</label>
-            <select id="worldRoom">
-              ${Object.entries(worldRooms).map(([id, item]) => `
-                <option value="${id}" ${state.worldRoom === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
-              `).join("")}
-            </select>
-          </div>
-          <div class="field">
-            <label for="vibeSelect">Vibe</label>
-            <select id="vibeSelect">
-              ${Object.entries(roomVibes).map(([id, item]) => `
-                <option value="${id}" ${state.roomVibe === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
-              `).join("")}
-            </select>
-          </div>
-          <div class="field">
-            <label for="modeSelect">Mode</label>
-            <select id="modeSelect">
-              ${Object.entries(gameModes).map(([id, item]) => `
-                <option value="${id}" ${state.mode === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
-              `).join("")}
-            </select>
-          </div>
-          <div class="field">
-            <label for="guardSelect">Comedy guard</label>
-            <select id="guardSelect">
-              ${Object.entries(comedyGuards).map(([id, item]) => `
-                <option value="${id}" ${state.roastLevel === id ? "selected" : ""}>${escapeHtml(item.label)}</option>
-              `).join("")}
-            </select>
-          </div>
-        </div>
-        <p class="field-note">${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
-        <div class="rules-grid">
-          <div class="field">
-            <label for="maxRounds">Rounds</label>
-            <input id="maxRounds" type="number" min="1" max="7" value="${state.maxRounds}">
-          </div>
-          <div class="field">
-            <label for="timeLimit">Timer seconds</label>
-            <input id="timeLimit" type="number" min="20" max="90" step="5" value="${state.timeLimit}">
-          </div>
-          <div class="rule-card">
-            <span>Win Value</span>
-            <strong>${mode.points} pts</strong>
-          </div>
-        </div>
-        <div class="field">
-          <label>Judge</label>
-          <select id="judgeSelect">
-            ${judges.map((item) => `
-              <option value="${item.id}" ${judge.id === item.id ? "selected" : ""}>${escapeHtml(item.name)}</option>
-            `).join("")}
-          </select>
-          <p class="field-note">${escapeHtml(judge.flavor)}</p>
-        </div>
-        <button class="button hot full" type="submit">Create Party Room</button>
+        ` : ""}
+        ${state.showAdvancedSetup ? `<button class="button hot full" type="submit">Create Party Room</button>` : ""}
       </form>
     </section>
   `);
@@ -2360,26 +2443,15 @@ function bindEvents() {
     button.addEventListener("click", () => applyMagicMix(button.dataset.magicMix));
   });
 
+  document.querySelector("#toggleAdvancedSetup")?.addEventListener("click", () => {
+    syncSetupDraft();
+    state.showAdvancedSetup = !state.showAdvancedSetup;
+    render();
+  });
+
   document.querySelector("#setupForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const playerName = cleanPlayerName(document.querySelector("#playerName").value);
-    const roomCode = cleanRoomCode(document.querySelector("#roomCode").value);
-    const worldRoom = document.querySelector("#worldRoom").value;
-    const judgeId = document.querySelector("#judgeSelect").value;
-    const roastLevel = document.querySelector("#guardSelect").value;
-    const maxRounds = clampNumber(document.querySelector("#maxRounds").value, 1, 7, currentMode().rounds);
-    const timeLimit = clampNumber(document.querySelector("#timeLimit").value, 20, 90, currentMode().timeLimit);
-    state.playerName = playerName;
-    state.roomCode = roomCode;
-    state.worldRoom = validKey(worldRooms, worldRoom, "global");
-    state.selectedJudgeId = validJudgeId(judgeId, "hr");
-    state.roastLevel = validKey(comedyGuards, roastLevel, "gentle");
-    state.maxRounds = maxRounds;
-    state.timeLimit = timeLimit;
-    state.timeLeft = timeLimit;
-    state.players = state.players.map((player) => (
-      player.id === "you" ? { ...player, name: playerName } : player
-    ));
+    syncSetupDraft();
     resetGame();
     setScreen("lobby");
   });
