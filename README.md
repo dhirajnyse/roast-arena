@@ -27,6 +27,7 @@ Current prototype flow:
 
 - Home setup
 - Funky arcade-inspired color system
+- Brighter game-lobby neon polish
 - Temporary Build tab for release tracking
 - Temporary Roadmap page for launch planning
 - Flow Cue guidance on every stage
@@ -60,6 +61,7 @@ Current prototype flow:
 
 - Create or join a party room.
 - Enjoy a brighter game-night visual style.
+- Feel a livelier arcade UI while keeping the setup simple.
 - Use the temporary Build tab to review current release direction.
 - Use the temporary Roadmap page to keep near-term product bets visible.
 - Follow the Flow Cue to keep hosting decisions simple.
