@@ -404,7 +404,7 @@ h2 {
   min-height: 152px;
 }
 
-.arena-grid.focus-mode .compass-chips,
+.arena-grid.focus-mode .assist-grid,
 .arena-grid.focus-mode .laugh-signals {
   display: none;
 }
@@ -429,6 +429,7 @@ h2 {
 
 .sidebar-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -441,6 +442,7 @@ h2 {
 }
 
 .sidebar-header span {
+  flex: 0 0 auto;
   color: var(--cyan);
   font-weight: 900;
 }
@@ -1977,7 +1979,7 @@ h2 {
   background: var(--arcade-rim);
 }
 
-.roast-compass {
+.turn-assist {
   display: grid;
   gap: 10px;
   padding: 14px;
@@ -1987,14 +1989,15 @@ h2 {
   box-shadow: inset 0 -4px 0 rgba(183, 255, 42, 0.2);
 }
 
-.compass-head {
+.assist-head {
   display: flex;
   justify-content: space-between;
   gap: 12px;
 }
 
-.compass-head span,
-.compass-chip em {
+.assist-head span,
+.assist-chip em,
+.assist-starter span {
   color: var(--violet);
   font-size: 0.72rem;
   font-style: normal;
@@ -2002,24 +2005,50 @@ h2 {
   text-transform: uppercase;
 }
 
-.compass-head strong,
-.compass-chip strong {
+.assist-head strong,
+.assist-chip strong,
+.assist-starter strong {
   color: var(--ink);
 }
 
-.roast-compass p {
+.assist-head em {
+  flex: 0 0 auto;
+  display: grid;
+  min-height: 32px;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--violet);
+  background: linear-gradient(135deg, rgba(0, 215, 255, 0.28), rgba(183, 255, 42, 0.36), rgba(255, 225, 86, 0.3));
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.turn-assist p,
+.turn-assist > small {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
 }
 
-.compass-chips {
+.assist-starter {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(255, 43, 214, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.assist-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
-.compass-chip {
+.assist-chip {
   display: grid;
   gap: 4px;
   min-height: 78px;
@@ -2029,9 +2058,19 @@ h2 {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 251, 238, 0.58));
 }
 
-.compass-chip small {
+.assist-chip small {
   color: var(--muted);
   line-height: 1.35;
+}
+
+.assist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assist-actions .button {
+  flex: 1 1 160px;
 }
 
 .laugh-signal {
@@ -2679,10 +2718,15 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .sidebar-header {
+    display: grid;
+    justify-content: start;
+  }
+
   .home-layout,
+  .assist-grid,
   .build-status-grid,
   .build-lanes,
-  .compass-chips,
   .dna-chips,
   .encore-chips,
   .flavor-grid,
@@ -2706,6 +2750,7 @@ h2 {
   }
 
   .build-section-head,
+  .assist-head,
   .dna-head,
   .encore-head,
   .moment-head,
@@ -2720,6 +2765,14 @@ h2 {
 
   .prompt-preview-head .button,
   .guest-welcome-head .button {
+    width: 100%;
+  }
+
+  .assist-actions {
+    display: grid;
+  }
+
+  .assist-actions .button {
     width: 100%;
   }
 

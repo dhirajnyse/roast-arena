@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Prompt Preview",
-    note: "Guests can see the first prompt mood before round one."
+    value: "First Turn Assist",
+    note: "The writing screen now starts with one compact help panel."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Host Dock",
-    note: "Start, copy welcome, add bot, and edit setup now sit in one lobby strip."
-  },
-  {
-    status: "Shipped",
     title: "Prompt Preview",
     note: "First prompt, starter line, and room-safe writing cues now appear in the lobby."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "First Turn Assist",
-    note: "Make the opening answer even easier without cluttering the room."
+    note: "Starter, spark answer, and writing cues now live in one submit-screen panel."
+  },
+  {
+    status: "Next",
+    title: "Answer Flow Polish",
+    note: "Keep trimming the writing screen until every action feels obvious."
   }
 ];
 
@@ -1698,6 +1698,42 @@ function buildRoastCompass() {
   };
 }
 
+function firstTurnAssistMarkup() {
+  const compass = buildRoastCompass();
+  const starterSignal = buildLaughSignal(compass.starter);
+  const spark = currentBotAnswers()[state.promptIndex % currentBotAnswers().length];
+  return `
+    <div class="turn-assist" aria-label="First turn assist">
+      <div class="assist-head">
+        <div>
+          <span>First Turn Assist</span>
+          <strong>${escapeHtml(compass.label)}</strong>
+        </div>
+        <em>${starterSignal.score}% starter</em>
+      </div>
+      <p>${escapeHtml(compass.cue)}</p>
+      <div class="assist-starter">
+        <span>Starter Line</span>
+        <strong>${escapeHtml(compass.starter)}</strong>
+      </div>
+      <div class="assist-grid">
+        ${compass.chips.map((chip) => `
+          <span class="assist-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <div class="assist-actions">
+        <button class="button secondary" id="compassStarter" type="button">Use Starter</button>
+        <button class="button secondary" id="chaosAnswer" type="button">Use Spark</button>
+      </div>
+      <small>${escapeHtml(spark)}</small>
+    </div>
+  `;
+}
+
 function buildLaughSignal(text = "") {
   const draft = text.trim();
   const length = draft.length;
@@ -2314,7 +2350,6 @@ function renderSubmit() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
-  const compass = buildRoastCompass();
   return shellMarkup(`
     <section class="arena-grid ${state.focusMode ? "focus-mode" : ""}">
       <aside class="sidebar" aria-label="Scoreboard">
@@ -2339,22 +2374,7 @@ function renderSubmit() {
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
           <p class="room-cue">${escapeHtml(worldRoom.label)} room / ${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
-          <div class="roast-compass" aria-label="Roast compass">
-            <div class="compass-head">
-              <span>Roast Compass</span>
-              <strong>${escapeHtml(compass.label)}</strong>
-            </div>
-            <p>${escapeHtml(compass.cue)}</p>
-            <div class="compass-chips">
-              ${compass.chips.map((chip) => `
-                <span class="compass-chip">
-                  <em>${escapeHtml(chip.label)}</em>
-                  <strong>${escapeHtml(chip.value)}</strong>
-                  <small>${escapeHtml(chip.cue)}</small>
-                </span>
-              `).join("")}
-            </div>
-          </div>
+          ${firstTurnAssistMarkup()}
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
           <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="${escapeHtml(guard.placeholder)}"></textarea>
           <div class="input-meta">
@@ -2366,8 +2386,6 @@ function renderSubmit() {
           <div class="controls">
             <button class="button hot" id="submitAnswer">Submit Roast</button>
             <button class="button secondary" id="toggleFocus">${state.focusMode ? "Show Scoreboard" : "Calm Focus"}</button>
-            <button class="button secondary" id="compassStarter">Use Starter</button>
-            <button class="button secondary" id="chaosAnswer">Use Chaos Answer</button>
             <button class="button ghost" id="skipToVote">Simulate Everyone</button>
           </div>
         </div>
@@ -2870,7 +2888,7 @@ function submitAnswer(forceBotAnswer = false) {
   const input = document.querySelector("#answerInput");
   const answer = forceBotAnswer ? "" : input.value.trim();
   if (!forceBotAnswer && !answer) {
-    state.notice = "Write a roast first, or use Chaos Answer.";
+    state.notice = "Write a roast first, or use Spark.";
     const error = document.querySelector("#answerError");
     if (error) error.textContent = state.notice;
     input.focus();
