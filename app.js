@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Zen Setup",
-    note: "Collapsed tuning for faster first-room hosting."
+    value: "Guest Welcome",
+    note: "A calmer lobby handoff for guests before round one."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Launch Kit",
-    note: "Unified copy cockpit for passport, ritual, invite, and host brief."
-  },
-  {
-    status: "Shipped",
     title: "Zen Setup",
     note: "Advanced room tuning now opens only when the host asks for it."
   },
   {
+    status: "Shipped",
+    title: "Guest Welcome",
+    note: "Copyable lobby welcome that explains tone, guardrails, and first move."
+  },
+  {
     status: "Next",
-    title: "Invite Polish",
-    note: "Sharper first-share flow with clearer guest expectations."
+    title: "Guest Join Polish",
+    note: "Make shared links feel like a real arrival experience."
   }
 ];
 
@@ -912,6 +912,53 @@ function buildLaunchRitual() {
   };
 }
 
+function buildGuestWelcome() {
+  const passport = buildRoomPassport();
+  const ritual = buildLaunchRitual();
+  const vibe = currentVibe();
+  const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
+  const mode = currentMode();
+  return {
+    title: `${state.roomCode} is ${passport.readiness.toLowerCase()}`,
+    subtitle: `${passport.title} / ${roomPaceLabel()} ${mode.label}`,
+    note: `${vibe.hostCue} ${guard.cue}`,
+    footer: "Make the joke travel: simple image, kind target, crisp ending.",
+    signals: [
+      { label: "Tone", value: vibe.label, cue: "Settle into the room before swinging." },
+      { label: "Guard", value: guard.label, cue: guard.cue },
+      { label: "Prompt", value: flavor.label, cue: ritual.steps[2].text }
+    ]
+  };
+}
+
+function guestWelcomeMarkup() {
+  const welcome = buildGuestWelcome();
+  return `
+    <div class="guest-welcome" aria-label="Guest welcome">
+      <div class="guest-welcome-head">
+        <div>
+          <span>Guest Welcome</span>
+          <strong>${escapeHtml(welcome.title)}</strong>
+        </div>
+        <button class="button secondary" id="copyWelcome" type="button">Copy Welcome</button>
+      </div>
+      <p>${escapeHtml(welcome.subtitle)}</p>
+      <div class="guest-welcome-grid">
+        ${welcome.signals.map((signal) => `
+          <span class="guest-welcome-chip">
+            <em>${escapeHtml(signal.label)}</em>
+            <strong>${escapeHtml(signal.value)}</strong>
+            <small>${escapeHtml(signal.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(welcome.footer)}</small>
+      <em id="welcomeStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
 function launchKitMarkup() {
   const passport = buildRoomPassport();
   const ritual = buildLaunchRitual();
@@ -1455,6 +1502,7 @@ function buildInviteText() {
   const mix = currentMagicMix();
   const passport = buildRoomPassport();
   const ritual = buildLaunchRitual();
+  const welcome = buildGuestWelcome();
   const inviteUrl = buildInviteUrl();
   const flavor = currentPromptFlavor();
   const pulse = roomPulse();
@@ -1465,6 +1513,7 @@ function buildInviteText() {
     `Magic mix: ${mix.label}`,
     `Room passport: ${passport.title} (${passport.readiness})`,
     `Launch ritual: ${ritual.label}`,
+    `Guest welcome: ${welcome.subtitle}`,
     `Recipe: ${recipe ? recipe.label : "Custom"}`,
     `Vibe: ${currentVibe().label}`,
     `World room: ${currentWorldRoom().label}`,
@@ -1474,6 +1523,20 @@ function buildInviteText() {
     `Room pulse: ${pulse.label} (${pulse.score}%)`,
     "",
     "Bring one clever answer. Keep it funny, not cruel."
+  ].join("\n");
+}
+
+function buildGuestWelcomeText() {
+  const welcome = buildGuestWelcome();
+  return [
+    `Welcome to Roast Arena - ${state.roomCode}`,
+    welcome.subtitle,
+    "",
+    welcome.note,
+    "",
+    ...welcome.signals.map((signal) => `${signal.label}: ${signal.value} - ${signal.cue}`),
+    "",
+    welcome.footer
   ].join("\n");
 }
 
@@ -1816,6 +1879,11 @@ function setInviteStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setWelcomeStatus(message) {
+  const status = document.querySelector("#welcomeStatus");
+  if (status) status.textContent = message;
+}
+
 function setBriefStatus(message) {
   const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
@@ -1888,6 +1956,17 @@ function copyInvite() {
     return;
   }
   fallbackCopy(text, setInviteStatus);
+}
+
+function copyGuestWelcome() {
+  const text = buildGuestWelcomeText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setWelcomeStatus("Guest welcome copied."))
+      .catch(() => fallbackCopy(text, setWelcomeStatus));
+    return;
+  }
+  fallbackCopy(text, setWelcomeStatus);
 }
 
 function copyHostBrief() {
@@ -2117,6 +2196,7 @@ function renderLobby() {
             <div class="stat"><strong>${state.timeLimit}</strong><span>Seconds</span></div>
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
+          ${guestWelcomeMarkup()}
           ${roomPulseMarkup()}
           ${launchKitMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
@@ -2511,6 +2591,7 @@ function bindEvents() {
   });
   document.querySelector("#copyBrief")?.addEventListener("click", copyHostBrief);
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
+  document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
