@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Live Room Prep",
-    note: "The lobby now shows the contract needed before simulated rooms become real multiplayer."
+    value: "Host Controls Polish",
+    note: "The lobby now turns room launch into one compact host command surface."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Global Rooms",
-    note: "Hosts now see local rhythm, safe angle, and avoid-zone cues before launch."
-  },
-  {
-    status: "Shipped",
     title: "Live Room Prep",
     note: "Room state, sync events, moderation, and environment needs are visible before backend work."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Host Controls Polish",
-    note: "Keep trimming lobby actions until the host always knows the next move."
+    note: "The lobby now shows one command bar for launch, invite, guests, and setup."
+  },
+  {
+    status: "Next",
+    title: "Rematch Flow Polish",
+    note: "Make the second room as easy as the first without adding more decisions."
   }
 ];
 
@@ -420,14 +420,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Live Room Prep",
-    text: "Define the state, sync, safety, and environment contract before adding a backend.",
+    title: "Host Controls Polish",
+    text: "Keep the lobby launch surface simple as sharing, safety, and live-room cues grow.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Host Controls Polish",
-    text: "Keep the lobby launch surface simple as sharing, safety, and live-room cues grow.",
+    title: "Rematch Flow Polish",
+    text: "Compress the encore setup so hosts can run the next room without rebuilding momentum.",
     status: "Planned"
   },
   {
@@ -1099,22 +1099,73 @@ function globalRoomGuideMarkup() {
   `;
 }
 
-function hostDockMarkup() {
+function buildHostCommand() {
   const pulse = roomPulse();
+  const readiness = buildLiveReadiness();
+  const guide = buildGlobalRoomGuide();
   const mode = currentMode();
+  const mix = currentMagicMix();
+  const flavor = currentPromptFlavor();
+  const seatsReady = state.players.length >= 3;
+  const inviteReady = pulse.score >= 72;
+  const liveReady = readiness.score >= 82;
+  return {
+    title: seatsReady ? `${pulse.label} to launch` : "Invite one more player",
+    subtitle: `${roomPaceLabel()} ${mode.label} / ${mix.label} / ${guide.chips[1].value} guard`,
+    primaryLabel: "Start Game",
+    steps: [
+      {
+        label: "Seats",
+        value: `${state.players.length}/8`,
+        state: seatsReady ? "ready" : "next",
+        cue: seatsReady ? "Enough voices" : "Add guests or bots"
+      },
+      {
+        label: "Invite",
+        value: state.roomCode,
+        state: inviteReady ? "ready" : "next",
+        cue: inviteReady ? "Welcome copy ready" : "Warm up the table"
+      },
+      {
+        label: "First Prompt",
+        value: flavor.helper,
+        state: "ready",
+        cue: activePrompt()
+      },
+      {
+        label: "Live Shape",
+        value: liveReady ? "Clean" : "Prototype",
+        state: liveReady ? "ready" : "next",
+        cue: readiness.label
+      }
+    ]
+  };
+}
+
+function hostDockMarkup() {
+  const command = buildHostCommand();
   return `
-    <div class="host-dock" aria-label="Host dock">
+    <div class="host-dock" aria-label="Host command">
       <div class="host-dock-copy">
-        <span>Host Dock</span>
-        <strong>${escapeHtml(pulse.label)} room, ${state.players.length}/8 seats</strong>
-        <small>${escapeHtml(roomPaceLabel())} ${escapeHtml(mode.label)} / ${state.maxRounds} rounds / ${state.timeLimit}s timer</small>
+        <span>Host Command</span>
+        <strong>${escapeHtml(command.title)}</strong>
+        <small>${escapeHtml(command.subtitle)} / ${state.maxRounds} rounds / ${state.timeLimit}s timer</small>
         <em id="dockStatus" class="share-status"></em>
       </div>
       <div class="host-dock-actions">
-        <button class="button hot" id="startGame" type="button">Start Game</button>
-        <button class="button secondary" id="dockCopyWelcome" type="button">Copy Welcome</button>
+        <button class="button hot" id="startGame" type="button">${escapeHtml(command.primaryLabel)}</button>
+        <button class="button secondary" id="dockCopyWelcome" type="button">Copy Invite</button>
         <button class="button secondary" id="addBot" type="button">Add Bot</button>
         <button class="button ghost" id="backHome" type="button">Edit Setup</button>
+      </div>
+      <div class="host-command-strip">
+        ${command.steps.map((step) => `
+          <span class="host-command-step ${escapeHtml(step.state)}">
+            <em>${escapeHtml(step.label)}</em>
+            <strong>${escapeHtml(step.value)}</strong>
+            <small>${escapeHtml(step.cue)}</small>
+          </span>
+        `).join("")}
       </div>
     </div>
   `;

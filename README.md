@@ -32,6 +32,7 @@ Current prototype flow:
 - Zen Setup collapsed advanced tuning
 - Guest Welcome lobby handoff
 - Host Dock one-strip lobby controls
+- Host Command readiness strip for calmer launch decisions
 - Prompt Preview first-round warmup
 - First Turn Assist writing coach
 - Compact Project Cockpit for Build and Roadmap
@@ -78,6 +79,7 @@ Current prototype flow:
 - Launch from Zen Setup without touching advanced controls.
 - Give guests a copyable welcome before the first round.
 - Start, copy, add guests, and edit setup from one Host Dock.
+- Use Host Command to see launch readiness, invite, first prompt, and live shape in one strip.
 - Preview the first prompt and starter line from the lobby.
 - Use First Turn Assist for starter and spark lines while writing.
 - Review Build and Roadmap from compact temporary cockpit pages.
