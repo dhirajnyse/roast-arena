@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Answer Flow Polish",
-    note: "The writing screen now guides starter, draft, signal, and submit in one compact flow."
+    value: "Creator Share Kit",
+    note: "Winning moments now ship with a clean caption, clip summary, and replay invite."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Compact Cockpit",
-    note: "Temporary project pages now show release direction without oversized hero weight."
-  },
-  {
-    status: "Shipped",
     title: "Answer Flow Polish",
     note: "Starter, draft signal, focus mode, and submit now sit in one clearer writer flow."
   },
   {
+    status: "Shipped",
+    title: "Creator Share Kit",
+    note: "Verdicts now package a caption, clip summary, and replay invite in one copyable kit."
+  },
+  {
     status: "Next",
-    title: "Creator-Ready Sharing",
-    note: "Make winning moments easier to clip, caption, and replay."
+    title: "Global Rooms",
+    note: "Prepare country-safe room defaults and reusable prompt packs."
   }
 ];
 
@@ -396,26 +396,26 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Calm Room Loop",
-    text: "Keep setup, writing, voting, verdicts, recap, and rematch feeling effortless.",
-    status: "In progress"
+    title: "Creator Share Kit",
+    text: "Package winning moments into captions, clip summaries, and replay invites.",
+    status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Creator-Ready Sharing",
-    text: "Turn winning moments into cleaner clips, captions, and reusable room invites.",
+    title: "Global Rooms",
+    text: "Prepare country profiles, prompt packs, and audience-safe defaults for multi-country launch.",
     status: "Planned"
   },
   {
     phase: "Scale",
-    title: "Global Rooms",
-    text: "Prepare country profiles, prompt packs, and audience-safe defaults for multi-country launch.",
+    title: "Real Multiplayer",
+    text: "Move from simulated rooms to live rooms, accounts, moderation, and deployment environments.",
     status: "Research"
   },
   {
     phase: "Platform",
-    title: "Real Multiplayer",
-    text: "Move from simulated rooms to live rooms, accounts, moderation, and deployment environments.",
+    title: "Multi-Environment Launch",
+    text: "Keep staging, country rollout, and production operations calm before the wider launch.",
     status: "Later"
   }
 ];
@@ -1549,6 +1549,28 @@ function buildMomentClipText() {
   ].join("\n");
 }
 
+function creatorCaptionLine(winner, dna = buildPunchlineDna(winner.text)) {
+  return `Round ${state.round}: ${winner.playerName} won a ${dna.verdict.toLowerCase()} with "${winner.text}"`;
+}
+
+function buildCreatorShareKitText() {
+  const winner = state.winner;
+  if (!winner) return "";
+  const dna = buildPunchlineDna(winner.text);
+  return [
+    `Roast Arena creator share kit - ${state.roomCode}`,
+    `Caption: ${creatorCaptionLine(winner, dna)}`,
+    `Clip title: R${state.round} - ${winner.playerName} / ${dna.verdict}`,
+    `Prompt: ${activePrompt()}`,
+    `Judge line: ${state.verdict}`,
+    `Replay invite: ${buildInviteUrl()}`,
+    `Room: ${currentWorldRoom().label} / ${currentComedyGuard().label} guard / ${currentVibe().label} vibe`,
+    `Punchline DNA: ${dna.score}% (${dna.verdict})`,
+    "",
+    "Bring one line. Keep it funny, not cruel."
+  ].join("\n");
+}
+
 function buildInviteUrl() {
   const url = new URL(window.location.href);
   url.search = "";
@@ -1877,6 +1899,39 @@ function momentClipMarkup(winner) {
   `;
 }
 
+function creatorShareKitMarkup(winner) {
+  const dna = buildPunchlineDna(winner.text);
+  return `
+    <div class="creator-share-kit" aria-label="Creator share kit">
+      <div class="share-kit-head">
+        <div>
+          <span>Creator Share Kit</span>
+          <strong>Caption, clip, replay</strong>
+        </div>
+        <button class="button secondary" id="copyCreatorKit" type="button">Copy Kit</button>
+      </div>
+      <p>${escapeHtml(creatorCaptionLine(winner, dna))}</p>
+      <div class="share-kit-assets">
+        <span>
+          <em>Clip Title</em>
+          <strong>R${state.round} - ${escapeHtml(winner.playerName)}</strong>
+          <small>${escapeHtml(dna.verdict)} / ${dna.score}% DNA</small>
+        </span>
+        <span>
+          <em>Caption Hook</em>
+          <strong>${escapeHtml(currentWorldRoom().label)} room</strong>
+          <small>${escapeHtml(currentComedyGuard().label)} guard keeps it share-safe.</small>
+        </span>
+        <span>
+          <em>Replay Invite</em>
+          <strong>${escapeHtml(state.roomCode)}</strong>
+          <small>Reusable room link included in the copied kit.</small>
+        </span>
+      </div>
+    </div>
+  `;
+}
+
 function averageDnaScore() {
   if (!state.history.length) return 0;
   const total = state.history.reduce((sum, item) => sum + buildPunchlineDna(item.answer).score, 0);
@@ -2072,6 +2127,17 @@ function copyMomentClip() {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text)
       .then(() => setMomentStatus("Moment clip copied."))
+      .catch(() => fallbackCopy(text, setMomentStatus));
+    return;
+  }
+  fallbackCopy(text, setMomentStatus);
+}
+
+function copyCreatorShareKit() {
+  const text = buildCreatorShareKitText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setMomentStatus("Creator share kit copied."))
       .catch(() => fallbackCopy(text, setMomentStatus));
     return;
   }
@@ -2476,6 +2542,7 @@ function renderVerdict() {
           </div>
           ${punchlineDnaMarkup(winner.text)}
           ${momentClipMarkup(winner)}
+          ${creatorShareKitMarkup(winner)}
           <p class="mode-note">${escapeHtml(winner.playerName)} banked ${pointsForWin()} points for this verdict.</p>
           <div class="controls">
             <button class="button hot" id="continueGame">${state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round"}</button>
@@ -2762,6 +2829,7 @@ function bindEvents() {
   });
   document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
   document.querySelector("#copyMoment")?.addEventListener("click", copyMomentClip);
+  document.querySelector("#copyCreatorKit")?.addEventListener("click", copyCreatorShareKit);
   document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
 
   const answerInput = document.querySelector("#answerInput");
