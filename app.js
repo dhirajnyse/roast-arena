@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Compact Cockpit",
-    note: "Build and Roadmap pages are now denser temporary work surfaces."
+    value: "Answer Flow Polish",
+    note: "The writing screen now guides starter, draft, signal, and submit in one compact flow."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "First Turn Assist",
-    note: "Starter, spark answer, and writing cues now live in one submit-screen panel."
-  },
-  {
-    status: "Shipped",
     title: "Compact Cockpit",
     note: "Temporary project pages now show release direction without oversized hero weight."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Answer Flow Polish",
-    note: "Keep trimming the writing screen until every action feels obvious."
+    note: "Starter, draft signal, focus mode, and submit now sit in one clearer writer flow."
+  },
+  {
+    status: "Next",
+    title: "Creator-Ready Sharing",
+    note: "Make winning moments easier to clip, caption, and replay."
   }
 ];
 
@@ -1377,7 +1377,7 @@ function startRoundTimer() {
     const fill = document.querySelector("#timerFill");
     if (timer) timer.textContent = state.timeLeft;
     if (fill) fill.style.width = `${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%`;
-    if (state.timeLeft === 0) submitAnswer(true);
+    if (state.timeLeft === 0) submitAnswer("auto");
   }, 1000);
 }
 
@@ -1706,30 +1706,35 @@ function firstTurnAssistMarkup() {
     <div class="turn-assist" aria-label="First turn assist">
       <div class="assist-head">
         <div>
-          <span>First Turn Assist</span>
+          <span>Answer Assist</span>
           <strong>${escapeHtml(compass.label)}</strong>
+          <p>${escapeHtml(compass.cue)}</p>
         </div>
         <em>${starterSignal.score}% starter</em>
       </div>
-      <p>${escapeHtml(compass.cue)}</p>
       <div class="assist-starter">
-        <span>Starter Line</span>
-        <strong>${escapeHtml(compass.starter)}</strong>
+        <div>
+          <span>Starter Line</span>
+          <strong>${escapeHtml(compass.starter)}</strong>
+        </div>
+        <button class="button ghost" id="compassStarter" type="button">Use</button>
       </div>
-      <div class="assist-grid">
+      <div class="assist-cues">
         ${compass.chips.map((chip) => `
-          <span class="assist-chip">
+          <span class="assist-cue">
             <em>${escapeHtml(chip.label)}</em>
             <strong>${escapeHtml(chip.value)}</strong>
             <small>${escapeHtml(chip.cue)}</small>
           </span>
         `).join("")}
       </div>
-      <div class="assist-actions">
-        <button class="button secondary" id="compassStarter" type="button">Use Starter</button>
+      <div class="spark-row">
+        <div>
+          <span>Spark Option</span>
+          <small>${escapeHtml(spark)}</small>
+        </div>
         <button class="button secondary" id="chaosAnswer" type="button">Use Spark</button>
       </div>
-      <small>${escapeHtml(spark)}</small>
     </div>
   `;
 }
@@ -2374,19 +2379,30 @@ function renderSubmit() {
             <div class="timer" id="roundTimer">${state.timeLeft}</div>
           </div>
           <p class="room-cue">${escapeHtml(worldRoom.label)} room / ${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
-          ${firstTurnAssistMarkup()}
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
-          <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="${escapeHtml(guard.placeholder)}"></textarea>
-          <div class="input-meta">
-            <span id="charCount">0/160</span>
-            <span>${pointsForWin()} points if picked</span>
-          </div>
-          ${laughSignalMarkup()}
-          <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
-          <div class="controls">
-            <button class="button hot" id="submitAnswer">Submit Roast</button>
-            <button class="button secondary" id="toggleFocus">${state.focusMode ? "Show Scoreboard" : "Calm Focus"}</button>
-            <button class="button ghost" id="skipToVote">Simulate Everyone</button>
+          <div class="answer-flow">
+            ${firstTurnAssistMarkup()}
+            <div class="answer-compose">
+              <div class="compose-head">
+                <div>
+                  <p class="kicker">Your answer</p>
+                  <h3>Write once. Submit clean.</h3>
+                </div>
+                <span>${pointsForWin()} pts</span>
+              </div>
+              <textarea id="answerInput" class="answer-input" maxlength="160" placeholder="${escapeHtml(guard.placeholder)}"></textarea>
+              <div class="input-meta">
+                <span id="charCount">0/160</span>
+                <span>Anonymous until vote</span>
+              </div>
+              ${laughSignalMarkup()}
+              <p class="form-error" id="answerError">${state.notice ? escapeHtml(state.notice) : ""}</p>
+              <div class="controls answer-actions">
+                <button class="button hot" id="submitAnswer">Submit Answer</button>
+                <button class="button secondary" id="toggleFocus">${state.focusMode ? "Show Scoreboard" : "Calm Focus"}</button>
+                <button class="button ghost" id="skipToVote">Finish Round</button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -2730,7 +2746,7 @@ function bindEvents() {
   document.querySelector("#toggleFocus")?.addEventListener("click", toggleFocusMode);
   document.querySelector("#compassStarter")?.addEventListener("click", useCompassStarter);
   document.querySelector("#chaosAnswer")?.addEventListener("click", useChaosAnswer);
-  document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer(true));
+  document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer("auto"));
   document.querySelector("#continueGame")?.addEventListener("click", continueGame);
   document.querySelector("#playAgain")?.addEventListener("click", () => {
     resetGame();
@@ -2851,6 +2867,7 @@ function useCompassStarter() {
 function useChaosAnswer() {
   const input = document.querySelector("#answerInput");
   const answers = currentBotAnswers();
+  if (!input) return;
   input.value = answers[state.promptIndex % answers.length];
   updateCharCount();
   input.focus();
@@ -2898,7 +2915,7 @@ function buildSubmissions(answer) {
 
 function submitAnswer(forceBotAnswer = false) {
   const input = document.querySelector("#answerInput");
-  const answer = forceBotAnswer ? "" : input.value.trim();
+  const answer = forceBotAnswer === true ? "" : (input ? input.value.trim() : "");
   if (!forceBotAnswer && !answer) {
     state.notice = "Write a roast first, or use Spark.";
     const error = document.querySelector("#answerError");

@@ -108,6 +108,7 @@ button {
   position: relative;
   overflow: hidden;
   width: 100%;
+  min-width: 0;
   min-height: min(820px, calc(100vh - 48px));
   padding: 18px;
   border: 1px solid var(--line);
@@ -404,7 +405,13 @@ h2 {
   min-height: 152px;
 }
 
+.arena-grid.focus-mode .answer-flow {
+  grid-template-columns: 1fr;
+}
+
 .arena-grid.focus-mode .assist-grid,
+.arena-grid.focus-mode .assist-cues,
+.arena-grid.focus-mode .spark-row,
 .arena-grid.focus-mode .laugh-signals {
   display: none;
 }
@@ -415,6 +422,7 @@ h2 {
 
 .sidebar,
 .stage {
+  min-width: 0;
   min-height: 640px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -592,6 +600,7 @@ h2 {
 .build-card,
 .temp-note,
 .roadmap-item {
+  min-width: 0;
   border-radius: 8px;
 }
 
@@ -683,6 +692,7 @@ h2 {
 .prompt-card h2 {
   font-size: clamp(1.45rem, 3vw, 2.5rem);
   line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
 .phase-panel {
@@ -1266,6 +1276,7 @@ h2 {
   margin: -4px 0 0;
   font-size: 0.92rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .guest-form {
@@ -2002,9 +2013,60 @@ h2 {
   background: var(--arcade-rim);
 }
 
+.answer-flow {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.82fr) minmax(0, 1.18fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+
+.answer-compose {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(0, 215, 255, 0.32);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(236, 252, 255, 0.62), rgba(255, 246, 255, 0.5));
+  box-shadow: inset 0 -4px 0 rgba(0, 215, 255, 0.12);
+}
+
+.compose-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+
+.compose-head .kicker {
+  margin: 0 0 4px;
+}
+
+.compose-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.3rem, 2.2vw, 1.75rem);
+}
+
+.compose-head > span {
+  flex: 0 0 auto;
+  display: grid;
+  min-height: 32px;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--violet);
+  background: linear-gradient(135deg, rgba(183, 255, 42, 0.42), rgba(255, 225, 86, 0.36));
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .turn-assist {
   display: grid;
   gap: 10px;
+  min-width: 0;
   padding: 14px;
   border: 1px solid rgba(183, 255, 42, 0.5);
   border-radius: 8px;
@@ -2015,12 +2077,15 @@ h2 {
 .assist-head {
   display: flex;
   justify-content: space-between;
+  align-items: start;
   gap: 12px;
 }
 
 .assist-head span,
 .assist-chip em,
-.assist-starter span {
+.assist-cue em,
+.assist-starter span,
+.spark-row span {
   color: var(--violet);
   font-size: 0.72rem;
   font-style: normal;
@@ -2030,8 +2095,15 @@ h2 {
 
 .assist-head strong,
 .assist-chip strong,
+.assist-cue strong,
 .assist-starter strong {
   color: var(--ink);
+}
+
+.assist-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .assist-head em {
@@ -2050,7 +2122,8 @@ h2 {
 }
 
 .turn-assist p,
-.turn-assist > small {
+.turn-assist > small,
+.spark-row small {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
@@ -2058,6 +2131,8 @@ h2 {
 
 .assist-starter {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 5px;
   padding: 12px;
   border: 1px solid rgba(255, 43, 214, 0.18);
@@ -2065,7 +2140,18 @@ h2 {
   background: rgba(255, 255, 255, 0.7);
 }
 
+.assist-starter .button {
+  min-height: 38px;
+  padding: 0 12px;
+}
+
 .assist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.assist-cues {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
@@ -2081,9 +2167,45 @@ h2 {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 251, 238, 0.58));
 }
 
+.assist-cue {
+  display: grid;
+  gap: 3px;
+  min-height: 68px;
+  padding: 9px;
+  border: 1px solid rgba(21, 34, 54, 0.08);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(255, 251, 238, 0.5));
+}
+
 .assist-chip small {
   color: var(--muted);
   line-height: 1.35;
+}
+
+.assist-cue small {
+  color: var(--muted);
+  line-height: 1.28;
+}
+
+.spark-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(183, 255, 42, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.spark-row div {
+  display: grid;
+  gap: 3px;
+}
+
+.spark-row .button {
+  min-height: 38px;
+  padding: 0 12px;
 }
 
 .assist-actions {
@@ -2268,6 +2390,18 @@ h2 {
 
 .answer-input.shake {
   animation: shakeInput 0.28s ease-in-out;
+}
+
+.answer-actions {
+  margin-top: 0;
+}
+
+.answer-actions .button {
+  flex: 1 1 150px;
+}
+
+.answer-actions .button.hot {
+  flex-basis: 200px;
 }
 
 .input-meta {
@@ -2706,7 +2840,7 @@ h2 {
 
 @media (max-width: 760px) {
   .app-shell {
-    width: min(100% - 18px, 1180px);
+    width: min(1180px, calc(100% - 18px));
     padding: 9px 0;
   }
 
@@ -2741,13 +2875,23 @@ h2 {
     grid-template-columns: 1fr;
   }
 
+  .arena-grid .stage {
+    order: 1;
+  }
+
+  .arena-grid .sidebar {
+    order: 2;
+  }
+
   .sidebar-header {
     display: grid;
     justify-content: start;
   }
 
   .home-layout,
+  .answer-flow,
   .assist-grid,
+  .assist-cues,
   .build-status-grid,
   .build-lanes,
   .dna-chips,
@@ -2775,6 +2919,8 @@ h2 {
 
   .build-section-head,
   .assist-head,
+  .assist-starter,
+  .compose-head,
   .dna-head,
   .encore-head,
   .moment-head,
@@ -2783,6 +2929,7 @@ h2 {
   .guest-welcome-head,
   .prompt-preview-head,
   .roadmap-item-head,
+  .spark-row,
   .zen-setup-head {
     display: grid;
   }
@@ -2792,11 +2939,15 @@ h2 {
     width: 100%;
   }
 
+  .answer-actions,
   .assist-actions {
     display: grid;
   }
 
-  .assist-actions .button {
+  .answer-actions .button,
+  .assist-actions .button,
+  .assist-starter .button,
+  .spark-row .button {
     width: 100%;
   }
 
@@ -2840,6 +2991,11 @@ h2 {
   .judge-row,
   .timer-row {
     grid-template-columns: 1fr;
+  }
+
+  .timer {
+    width: 84px;
+    justify-self: start;
   }
 
   .sidebar,

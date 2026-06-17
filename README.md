@@ -35,6 +35,7 @@ Current prototype flow:
 - Prompt Preview first-round warmup
 - First Turn Assist writing coach
 - Compact Project Cockpit for Build and Roadmap
+- Answer Flow Polish compact writer
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -77,6 +78,7 @@ Current prototype flow:
 - Preview the first prompt and starter line from the lobby.
 - Use First Turn Assist for starter and spark lines while writing.
 - Review Build and Roadmap from compact temporary cockpit pages.
+- Write, check, focus, and submit from one compact answer flow.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.
