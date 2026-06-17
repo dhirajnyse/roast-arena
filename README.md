@@ -68,6 +68,7 @@ Current prototype flow:
 - Live Laugh Signal for draft length, twist, and kindness
 - Empty-answer guard and chaos answer assist
 - Anonymous voting
+- Vote Guide for faster anonymous picks
 - Judge verdict
 - Punchline DNA after each winning reveal
 - Copyable Moment Clip for each winning reveal
@@ -118,6 +119,7 @@ Current prototype flow:
 - Switch into Calm Focus Mode while writing.
 - Watch the Laugh Signal while drafting.
 - Submit anonymous answers.
+- Use the Vote Guide to reward the cleanest anonymous answer.
 - Vote.
 - Show judge verdicts.
 - Review Punchline DNA for each winning answer.

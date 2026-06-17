@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Round Start Polish",
-    note: "The first answer screen now gives players a calmer launch cue before they type."
+    value: "Vote Flow Polish",
+    note: "Anonymous voting now has a clearer guide and more scannable answer cards."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Guest Join Polish",
-    note: "Guests now get a lighter arrival card with room code, first move, and safety cues."
-  },
-  {
-    status: "Shipped",
     title: "Round Start Polish",
     note: "Players now see a compact start cue before writing the first answer."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Vote Flow Polish",
-    note: "Make anonymous voting faster, clearer, and more theatrical without adding work."
+    note: "The voting moment now explains what to reward and makes each anonymous answer easier to scan."
+  },
+  {
+    status: "Next",
+    title: "Verdict Moment Polish",
+    note: "Make the winning reveal feel more replayable while keeping the next action obvious."
   }
 ];
 
@@ -420,14 +420,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Round Start Polish",
-    text: "Reduce the first-answer hesitation after guests arrive and the host starts the room.",
+    title: "Vote Flow Polish",
+    text: "Make anonymous voting faster, clearer, and more theatrical without adding work.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Vote Flow Polish",
-    text: "Make anonymous voting faster, clearer, and more theatrical without adding work.",
+    title: "Verdict Moment Polish",
+    text: "Make the winning reveal feel more replayable while keeping the next action obvious.",
     status: "Planned"
   },
   {
@@ -2282,6 +2282,77 @@ function punchlineDnaMarkup(answer) {
   `;
 }
 
+function buildVoteGuide() {
+  const guard = currentComedyGuard();
+  const mode = currentMode();
+  const judge = currentJudge();
+  return {
+    title: `${state.submissions.length} anonymous answers`,
+    subtitle: "Pick the line with the clearest image, cleanest turn, and safest landing.",
+    chips: [
+      {
+        label: "Blind",
+        value: "No names",
+        cue: "Vote for the joke, not the player"
+      },
+      {
+        label: "Reward",
+        value: `${pointsForWin()} pts`,
+        cue: `${mode.label} scoring`
+      },
+      {
+        label: "Guard",
+        value: guard.label,
+        cue: guard.cue
+      },
+      {
+        label: "Judge",
+        value: judge.name,
+        cue: "Verdict lands after the tap"
+      }
+    ]
+  };
+}
+
+function voteGuideMarkup() {
+  const guide = buildVoteGuide();
+  return `
+    <div class="vote-guide" aria-label="Vote guide">
+      <div class="vote-guide-head">
+        <div>
+          <span>Vote Guide</span>
+          <strong>${escapeHtml(guide.title)}</strong>
+          <p>${escapeHtml(guide.subtitle)}</p>
+        </div>
+        <em>${pointsForWin()} pts</em>
+      </div>
+      <div class="vote-guide-grid">
+        ${guide.chips.map((chip) => `
+          <span class="vote-guide-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function submissionVoteMarkup(entry, index) {
+  const signal = buildLaughSignal(entry.text);
+  return `
+    <button class="submission" data-vote="${index}" type="button">
+      <span class="submission-head">
+        <span>Answer ${index + 1}</span>
+        <strong>${escapeHtml(signal.label)} / ${signal.score}%</strong>
+      </span>
+      <p>${escapeHtml(entry.text)}</p>
+      <small>${escapeHtml(signal.cue)}</small>
+    </button>
+  `;
+}
+
 function momentClipMarkup(winner) {
   const dna = buildPunchlineDna(winner.text);
   return `
@@ -2983,13 +3054,9 @@ function renderVote() {
           <p class="kicker">Pick the winner</p>
           <h2>Which answer owns the room?</h2>
           <p class="mode-note">Winner earns ${pointsForWin()} points in ${escapeHtml(currentMode().label)} mode.</p>
+          ${voteGuideMarkup()}
           <div class="submissions">
-            ${state.submissions.map((entry, index) => `
-              <button class="submission" data-vote="${index}">
-                <strong>Answer ${index + 1}</strong><br>
-                ${escapeHtml(entry.text)}
-              </button>
-            `).join("")}
+            ${state.submissions.map(submissionVoteMarkup).join("")}
           </div>
         </div>
       </section>
@@ -3482,6 +3549,7 @@ function submitAnswer(forceBotAnswer = false) {
 
 function chooseWinner(index) {
   const winner = state.submissions[index];
+  if (!winner) return;
   const player = state.players.find((item) => item.id === winner.playerId);
   const points = pointsForWin();
   if (player) player.score += points;
