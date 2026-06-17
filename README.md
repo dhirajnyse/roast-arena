@@ -32,6 +32,7 @@ Current prototype flow:
 - Zen Setup collapsed advanced tuning
 - Guest Welcome lobby handoff
 - Host Dock one-strip lobby controls
+- Prompt Preview first-round warmup
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -71,6 +72,7 @@ Current prototype flow:
 - Launch from Zen Setup without touching advanced controls.
 - Give guests a copyable welcome before the first round.
 - Start, copy, add guests, and edit setup from one Host Dock.
+- Preview the first prompt and starter line from the lobby.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.

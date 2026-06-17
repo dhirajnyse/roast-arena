@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Host Dock",
-    note: "Primary lobby actions are now visible in one calm control strip."
+    value: "Prompt Preview",
+    note: "Guests can see the first prompt mood before round one."
   },
   {
     label: "Prototype channel",
@@ -280,18 +280,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Guest Welcome",
-    note: "Copyable lobby welcome that explains tone, guardrails, and first move."
-  },
-  {
-    status: "Shipped",
     title: "Host Dock",
     note: "Start, copy welcome, add bot, and edit setup now sit in one lobby strip."
   },
   {
+    status: "Shipped",
+    title: "Prompt Preview",
+    note: "First prompt, starter line, and room-safe writing cues now appear in the lobby."
+  },
+  {
     status: "Next",
-    title: "Guest Join Polish",
-    note: "Make shared links feel like a real arrival experience."
+    title: "First Turn Assist",
+    note: "Make the opening answer even easier without cluttering the room."
   }
 ];
 
@@ -980,6 +980,55 @@ function hostDockMarkup() {
   `;
 }
 
+function buildPromptPreview() {
+  const compass = buildRoastCompass();
+  const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
+  const mode = currentMode();
+  return {
+    title: `Round ${state.round}/${state.maxRounds} first look`,
+    prompt: activePrompt(),
+    starter: compass.starter,
+    cue: compass.cue,
+    chips: [
+      { label: "Mode", value: mode.label, cue: mode.tone },
+      { label: "Flavor", value: flavor.label, cue: flavor.cue },
+      { label: "Guard", value: guard.label, cue: guard.cue }
+    ]
+  };
+}
+
+function promptPreviewMarkup() {
+  const preview = buildPromptPreview();
+  return `
+    <div class="prompt-preview" aria-label="Prompt preview">
+      <div class="prompt-preview-head">
+        <div>
+          <span>Prompt Preview</span>
+          <strong>${escapeHtml(preview.title)}</strong>
+        </div>
+        <button class="button secondary" id="copyPromptPreview" type="button">Copy Prompt</button>
+      </div>
+      <blockquote>${escapeHtml(preview.prompt)}</blockquote>
+      <p>${escapeHtml(preview.cue)}</p>
+      <div class="prompt-starter">
+        <span>Starter Line</span>
+        <strong>${escapeHtml(preview.starter)}</strong>
+      </div>
+      <div class="prompt-preview-grid">
+        ${preview.chips.map((chip) => `
+          <span class="prompt-preview-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <em id="promptPreviewStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
 function launchKitMarkup() {
   const passport = buildRoomPassport();
   const ritual = buildLaunchRitual();
@@ -1561,6 +1610,19 @@ function buildGuestWelcomeText() {
   ].join("\n");
 }
 
+function buildPromptPreviewText() {
+  const preview = buildPromptPreview();
+  return [
+    `Roast Arena Prompt Preview - ${state.roomCode}`,
+    preview.title,
+    "",
+    `Prompt: ${preview.prompt}`,
+    `Starter: ${preview.starter}`,
+    "",
+    ...preview.chips.map((chip) => `${chip.label}: ${chip.value} - ${chip.cue}`)
+  ].join("\n");
+}
+
 function buildLaunchRitualText() {
   const ritual = buildLaunchRitual();
   return [
@@ -1907,6 +1969,11 @@ function setWelcomeStatus(message) {
   if (dockStatus) dockStatus.textContent = message;
 }
 
+function setPromptPreviewStatus(message) {
+  const status = document.querySelector("#promptPreviewStatus");
+  if (status) status.textContent = message;
+}
+
 function setBriefStatus(message) {
   const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
@@ -1990,6 +2057,17 @@ function copyGuestWelcome() {
     return;
   }
   fallbackCopy(text, setWelcomeStatus);
+}
+
+function copyPromptPreview() {
+  const text = buildPromptPreviewText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setPromptPreviewStatus("Prompt preview copied."))
+      .catch(() => fallbackCopy(text, setPromptPreviewStatus));
+    return;
+  }
+  fallbackCopy(text, setPromptPreviewStatus);
 }
 
 function copyHostBrief() {
@@ -2220,6 +2298,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${hostDockMarkup()}
+          ${promptPreviewMarkup()}
           ${guestWelcomeMarkup()}
           ${roomPulseMarkup()}
           ${launchKitMarkup()}
@@ -2612,6 +2691,7 @@ function bindEvents() {
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
+  document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);
