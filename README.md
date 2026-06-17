@@ -34,6 +34,7 @@ Current prototype flow:
 - Host Dock one-strip lobby controls
 - Prompt Preview first-round warmup
 - First Turn Assist writing coach
+- Compact Project Cockpit for Build and Roadmap
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -75,6 +76,7 @@ Current prototype flow:
 - Start, copy, add guests, and edit setup from one Host Dock.
 - Preview the first prompt and starter line from the lobby.
 - Use First Turn Assist for starter and spark lines while writing.
+- Review Build and Roadmap from compact temporary cockpit pages.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.

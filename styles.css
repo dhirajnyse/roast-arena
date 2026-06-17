@@ -703,7 +703,7 @@ h2 {
 .build-layout,
 .roadmap-layout {
   display: grid;
-  gap: 18px;
+  gap: 14px;
 }
 
 .build-hero {
@@ -722,6 +722,29 @@ h2 {
 
 .roadmap-hero {
   min-height: 280px;
+}
+
+.project-hero {
+  min-height: auto;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.68fr);
+  align-items: end;
+}
+
+.project-title {
+  max-width: 11ch;
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: clamp(2.2rem, 4.8vw, 4.9rem);
+  line-height: 0.98;
+}
+
+.project-hero-side {
+  display: grid;
+  gap: 12px;
+}
+
+.project-hero .controls {
+  margin-top: 0;
 }
 
 .temp-note {
@@ -760,7 +783,7 @@ h2 {
 }
 
 .build-card {
-  padding: 16px;
+  padding: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.76);
 }
@@ -804,7 +827,7 @@ h2 {
 }
 
 .build-lane {
-  min-height: 150px;
+  min-height: 132px;
   display: grid;
   align-content: start;
   gap: 8px;
@@ -821,14 +844,14 @@ h2 {
 
 .roadmap-track {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .roadmap-item {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: 82px 1fr;
+  gap: 14px;
+  padding: 14px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.76);
 }
@@ -2739,6 +2762,7 @@ h2 {
   .launch-kit-grid,
   .magic-mix-grid,
   .pulse-signals,
+  .project-hero,
   .prompt-preview-grid,
   .quick-launch-grid,
   .recipe-grid,
@@ -2801,8 +2825,12 @@ h2 {
   }
 
   .build-hero {
-    min-height: auto;
     padding: 18px;
+  }
+
+  .project-title {
+    max-width: none;
+    font-size: clamp(2rem, 12vw, 3.6rem);
   }
 
   .roadmap-item {

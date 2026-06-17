@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "First Turn Assist",
-    note: "The writing screen now starts with one compact help panel."
+    value: "Compact Cockpit",
+    note: "Build and Roadmap pages are now denser temporary work surfaces."
   },
   {
     label: "Prototype channel",
@@ -280,13 +280,13 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Prompt Preview",
-    note: "First prompt, starter line, and room-safe writing cues now appear in the lobby."
+    title: "First Turn Assist",
+    note: "Starter, spark answer, and writing cues now live in one submit-screen panel."
   },
   {
     status: "Shipped",
-    title: "First Turn Assist",
-    note: "Starter, spark answer, and writing cues now live in one submit-screen panel."
+    title: "Compact Cockpit",
+    note: "Temporary project pages now show release direction without oversized hero weight."
   },
   {
     status: "Next",
@@ -2523,17 +2523,21 @@ function renderScoreboardScreen() {
 function renderBuild() {
   return shellMarkup(`
     <section class="build-layout">
-      <div class="build-hero">
-        <p class="kicker">Temporary Build Page</p>
-        <h2 class="hero-title">A calm build board for every release.</h2>
-        <p class="hero-copy">Use this page while Roast Arena is under construction. It keeps the current release, next bet, and product principles visible without adding permanent product weight.</p>
-        <div class="temp-note">
-          <span>Temporary</span>
-          <p>Delete this Build page and the Roadmap page before the final public launch if the product no longer needs them.</p>
+      <div class="build-hero project-hero">
+        <div>
+          <p class="kicker">Temporary Build Page</p>
+          <h2 class="project-title">Release cockpit.</h2>
+          <p class="hero-copy">Current release, next bet, and product principles in one compact work surface.</p>
         </div>
-        <div class="controls">
-          <a class="button hot" href="#roadmap" data-go-screen="roadmap">Open Roadmap</a>
-          <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Back to Arena</a>
+        <div class="project-hero-side">
+          <div class="temp-note">
+            <span>Temporary</span>
+            <p>Delete Build and Roadmap before public launch if they stop reducing product uncertainty.</p>
+          </div>
+          <div class="controls">
+            <a class="button hot" href="#roadmap" data-go-screen="roadmap">Open Roadmap</a>
+            <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Back to Arena</a>
+          </div>
         </div>
       </div>
 
@@ -2572,13 +2576,21 @@ function renderBuild() {
 function renderRoadmap() {
   return shellMarkup(`
     <section class="roadmap-layout">
-      <div class="build-hero roadmap-hero">
-        <p class="kicker">Temporary Roadmap Page</p>
-        <h2 class="hero-title">Simple path to a world-class room.</h2>
-        <p class="hero-copy">This roadmap stays intentionally small: improve the host loop, make moments shareable, prepare global rooms, then add real platform infrastructure when the prototype proves the fun.</p>
-        <div class="controls">
-          <a class="button secondary" href="#build" data-go-screen="build">Back to Build</a>
-          <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Open Arena</a>
+      <div class="build-hero roadmap-hero project-hero">
+        <div>
+          <p class="kicker">Temporary Roadmap Page</p>
+          <h2 class="project-title">Compact path to launch.</h2>
+          <p class="hero-copy">Keep only the bets that reduce hesitation: host loop, sharing, global rooms, then platform infrastructure.</p>
+        </div>
+        <div class="project-hero-side">
+          <div class="temp-note">
+            <span>Focus</span>
+            <p>Every roadmap item must make the room easier to host, play, share, or scale.</p>
+          </div>
+          <div class="controls">
+            <a class="button secondary" href="#build" data-go-screen="build">Back to Build</a>
+            <a class="button ghost" href="#arena" data-go-screen="${escapeHtml(state.lastArenaScreen)}">Open Arena</a>
+          </div>
         </div>
       </div>
 
