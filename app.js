@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Global Rooms",
-    note: "World rooms now include compact country-safe hosting cues and prompt guidance."
+    value: "Live Room Prep",
+    note: "The lobby now shows the contract needed before simulated rooms become real multiplayer."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Creator Share Kit",
-    note: "Verdicts now package a caption, clip summary, and replay invite in one copyable kit."
-  },
-  {
-    status: "Shipped",
     title: "Global Rooms",
     note: "Hosts now see local rhythm, safe angle, and avoid-zone cues before launch."
   },
   {
+    status: "Shipped",
+    title: "Live Room Prep",
+    note: "Room state, sync events, moderation, and environment needs are visible before backend work."
+  },
+  {
     status: "Next",
-    title: "Real Multiplayer Prep",
-    note: "Keep live rooms, moderation, and environments simple before infrastructure arrives."
+    title: "Host Controls Polish",
+    note: "Keep trimming lobby actions until the host always knows the next move."
   }
 ];
 
@@ -420,20 +420,20 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Global Rooms",
-    text: "Turn country profiles into host cues, safer defaults, and reusable room guidance.",
+    title: "Live Room Prep",
+    text: "Define the state, sync, safety, and environment contract before adding a backend.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Real Multiplayer Prep",
-    text: "Prepare live room foundations without disturbing the static prototype loop.",
+    title: "Host Controls Polish",
+    text: "Keep the lobby launch surface simple as sharing, safety, and live-room cues grow.",
     status: "Planned"
   },
   {
     phase: "Scale",
-    title: "Multi-Country Prompt Packs",
-    text: "Grow reusable prompt defaults for more countries once the guide pattern proves useful.",
+    title: "Real Multiplayer",
+    text: "Move room state, submissions, voting, and verdicts from local simulation to live sync.",
     status: "Research"
   },
   {
@@ -855,6 +855,75 @@ function roomPulseMarkup() {
         `).join("")}
       </div>
       <p>${escapeHtml(pulse.tone)}</p>
+    </div>
+  `;
+}
+
+function buildLiveReadiness() {
+  const pulse = roomPulse();
+  const mode = currentMode();
+  const guide = buildGlobalRoomGuide();
+  const items = [
+    {
+      label: "State Contract",
+      value: "Ready",
+      level: "ready",
+      cue: "Room setup, players, rounds, prompts, submissions, votes, and verdicts already live in one state model."
+    },
+    {
+      label: "Sync Events",
+      value: "Next",
+      level: "next",
+      cue: "Start game, submit answer, cast vote, reveal verdict, and rematch become the first server events."
+    },
+    {
+      label: "Safety Layer",
+      value: guide.chips[1].value,
+      level: state.roastLevel === "gentle" ? "ready" : "next",
+      cue: `${currentComedyGuard().label} guard plus Global Room Guide defines the first moderation contract.`
+    },
+    {
+      label: "Environment",
+      value: "Static",
+      level: "later",
+      cue: "Keep GitHub Pages as prototype while staging and production contracts stay small."
+    }
+  ];
+  const readyCount = items.filter((item) => item.level === "ready").length;
+  const score = Math.min(100, 42 + readyCount * 18 + (pulse.score >= 72 ? 12 : 0));
+  return {
+    label: score >= 82 ? "Live-ready shape" : "Prototype shape",
+    score,
+    summary: `${mode.label} room loop has ${items.length} live handoff surfaces. Build the backend only after these stay simple.`,
+    items
+  };
+}
+
+function liveReadinessMarkup() {
+  const readiness = buildLiveReadiness();
+  return `
+    <div class="live-readiness" aria-label="Live room readiness">
+      <div class="live-readiness-head">
+        <div>
+          <span>Live Room Prep</span>
+          <strong>${escapeHtml(readiness.label)}</strong>
+        </div>
+        <button class="button secondary" id="copyLiveBlueprint" type="button">Copy Blueprint</button>
+      </div>
+      <div class="live-readiness-meter" aria-hidden="true">
+        <span style="width: ${readiness.score}%"></span>
+      </div>
+      <p>${escapeHtml(readiness.summary)}</p>
+      <div class="live-readiness-grid">
+        ${readiness.items.map((item) => `
+          <span class="live-readiness-chip ${escapeHtml(item.level)}">
+            <em>${escapeHtml(item.label)}</em>
+            <strong>${escapeHtml(item.value)}</strong>
+            <small>${escapeHtml(item.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <em id="liveBlueprintStatus" class="share-status"></em>
     </div>
   `;
 }
@@ -1730,6 +1799,27 @@ function buildGlobalRoomGuideText() {
   ].join("\n");
 }
 
+function buildLiveBlueprintText() {
+  const readiness = buildLiveReadiness();
+  return [
+    `Live Room Blueprint - ${state.roomCode}`,
+    `Status: ${readiness.label} / ${readiness.score}%`,
+    readiness.summary,
+    "",
+    "Handoff surfaces:",
+    ...readiness.items.map((item) => `${item.label}: ${item.value} - ${item.cue}`),
+    "",
+    "First backend events:",
+    "1. room:start",
+    "2. answer:submit",
+    "3. vote:cast",
+    "4. verdict:reveal",
+    "5. room:rematch",
+    "",
+    "Keep the first live version calm: one room, one host, one shared state, one moderation path."
+  ].join("\n");
+}
+
 function buildLaunchRitualText() {
   const ritual = buildLaunchRitual();
   return [
@@ -1771,6 +1861,7 @@ function buildHostBrief() {
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guide = buildGlobalRoomGuide();
+  const readiness = buildLiveReadiness();
   const flavor = currentPromptFlavor();
   const guard = currentComedyGuard();
   const judge = currentJudge();
@@ -1783,6 +1874,7 @@ function buildHostBrief() {
     `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
     `Global room guide: ${guide.safeLine}`,
     `Avoid zone: ${guide.avoidLine}`,
+    `Live room prep: ${readiness.label}. ${readiness.summary}`,
     `Tone: ${vibe.label}. ${vibe.hostCue}`,
     `Guardrail: ${guard.label}. ${guard.cue}`,
     `Judge: ${judge.name}. ${mode.label} runs ${state.maxRounds} rounds, ${state.timeLimit}s each.`,
@@ -2166,6 +2258,11 @@ function setGlobalGuideStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setLiveBlueprintStatus(message) {
+  const status = document.querySelector("#liveBlueprintStatus");
+  if (status) status.textContent = message;
+}
+
 function setBriefStatus(message) {
   const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
@@ -2282,6 +2379,17 @@ function copyGlobalRoomGuide() {
     return;
   }
   fallbackCopy(text, setGlobalGuideStatus);
+}
+
+function copyLiveBlueprint() {
+  const text = buildLiveBlueprintText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setLiveBlueprintStatus("Live room blueprint copied."))
+      .catch(() => fallbackCopy(text, setLiveBlueprintStatus));
+    return;
+  }
+  fallbackCopy(text, setLiveBlueprintStatus);
 }
 
 function copyHostBrief() {
@@ -2512,6 +2620,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${hostDockMarkup()}
+          ${liveReadinessMarkup()}
           ${globalRoomGuideMarkup()}
           ${promptPreviewMarkup()}
           ${guestWelcomeMarkup()}
@@ -2914,6 +3023,7 @@ function bindEvents() {
   document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
   document.querySelector("#copyGlobalGuide")?.addEventListener("click", copyGlobalRoomGuide);
+  document.querySelector("#copyLiveBlueprint")?.addEventListener("click", copyLiveBlueprint);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);

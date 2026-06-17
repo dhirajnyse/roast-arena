@@ -38,6 +38,7 @@ Current prototype flow:
 - Answer Flow Polish compact writer
 - Creator Share Kit for clip-ready verdicts
 - Global Room Guide for country-safe hosting cues
+- Live Room Prep for future multiplayer handoff
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -83,6 +84,7 @@ Current prototype flow:
 - Write, check, focus, and submit from one compact answer flow.
 - Copy a Creator Share Kit with caption, clip summary, and replay invite.
 - Use the Global Room Guide for local rhythm, safe angle, and avoid-zone cues.
+- Review Live Room Prep before moving simulated rooms to a backend.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.

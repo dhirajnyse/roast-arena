@@ -1592,6 +1592,112 @@ h2 {
   flex: 0 1 132px;
 }
 
+.live-readiness {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(124, 77, 255, 0.28);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 244, 255, 0.62), rgba(236, 252, 255, 0.58)),
+    linear-gradient(90deg, rgba(124, 77, 255, 0.12), rgba(0, 215, 255, 0.14), rgba(183, 255, 42, 0.14));
+  box-shadow: inset 0 -5px 0 rgba(124, 77, 255, 0.12);
+}
+
+.live-readiness-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.live-readiness-head span,
+.live-readiness-chip em {
+  color: var(--violet);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.live-readiness-head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.live-readiness-meter {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(21, 34, 54, 0.08);
+}
+
+.live-readiness-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--arcade-rim);
+}
+
+.live-readiness p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.live-readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.live-readiness-chip {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  min-height: 112px;
+  padding: 10px;
+  border: 1px solid rgba(54, 22, 128, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.live-readiness-chip.ready {
+  background: linear-gradient(135deg, rgba(183, 255, 42, 0.34), rgba(0, 215, 255, 0.16));
+}
+
+.live-readiness-chip.next {
+  background: linear-gradient(135deg, rgba(255, 225, 86, 0.34), rgba(255, 255, 255, 0.66));
+}
+
+.live-readiness-chip.later {
+  background: linear-gradient(135deg, rgba(255, 244, 255, 0.82), rgba(236, 252, 255, 0.5));
+}
+
+.live-readiness-chip strong {
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.live-readiness-chip small {
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.live-readiness .share-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .prompt-preview {
   display: grid;
   gap: 12px;
@@ -3066,6 +3172,7 @@ h2 {
   .guest-welcome-grid,
   .laugh-signals,
   .launch-kit-grid,
+  .live-readiness-grid,
   .magic-mix-grid,
   .pulse-signals,
   .project-hero,
@@ -3092,6 +3199,7 @@ h2 {
   .quick-launch-head,
   .guest-welcome-head,
   .global-guide-head,
+  .live-readiness-head,
   .prompt-preview-head,
   .roadmap-item-head,
   .share-kit-head,
@@ -3102,6 +3210,7 @@ h2 {
 
   .prompt-preview-head .button,
   .global-guide-head .button,
+  .live-readiness-head .button,
   .guest-welcome-head .button {
     width: 100%;
   }
