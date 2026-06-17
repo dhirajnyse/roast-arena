@@ -262,8 +262,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Guest Welcome",
-    note: "A calmer lobby handoff for guests before round one."
+    value: "Host Dock",
+    note: "Primary lobby actions are now visible in one calm control strip."
   },
   {
     label: "Prototype channel",
@@ -280,13 +280,13 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Zen Setup",
-    note: "Advanced room tuning now opens only when the host asks for it."
+    title: "Guest Welcome",
+    note: "Copyable lobby welcome that explains tone, guardrails, and first move."
   },
   {
     status: "Shipped",
-    title: "Guest Welcome",
-    note: "Copyable lobby welcome that explains tone, guardrails, and first move."
+    title: "Host Dock",
+    note: "Start, copy welcome, add bot, and edit setup now sit in one lobby strip."
   },
   {
     status: "Next",
@@ -955,6 +955,27 @@ function guestWelcomeMarkup() {
       </div>
       <small>${escapeHtml(welcome.footer)}</small>
       <em id="welcomeStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
+function hostDockMarkup() {
+  const pulse = roomPulse();
+  const mode = currentMode();
+  return `
+    <div class="host-dock" aria-label="Host dock">
+      <div class="host-dock-copy">
+        <span>Host Dock</span>
+        <strong>${escapeHtml(pulse.label)} room, ${state.players.length}/8 seats</strong>
+        <small>${escapeHtml(roomPaceLabel())} ${escapeHtml(mode.label)} / ${state.maxRounds} rounds / ${state.timeLimit}s timer</small>
+        <em id="dockStatus" class="share-status"></em>
+      </div>
+      <div class="host-dock-actions">
+        <button class="button hot" id="startGame" type="button">Start Game</button>
+        <button class="button secondary" id="dockCopyWelcome" type="button">Copy Welcome</button>
+        <button class="button secondary" id="addBot" type="button">Add Bot</button>
+        <button class="button ghost" id="backHome" type="button">Edit Setup</button>
+      </div>
     </div>
   `;
 }
@@ -1882,6 +1903,8 @@ function setInviteStatus(message) {
 function setWelcomeStatus(message) {
   const status = document.querySelector("#welcomeStatus");
   if (status) status.textContent = message;
+  const dockStatus = document.querySelector("#dockStatus");
+  if (dockStatus) dockStatus.textContent = message;
 }
 
 function setBriefStatus(message) {
@@ -2196,15 +2219,11 @@ function renderLobby() {
             <div class="stat"><strong>${state.timeLimit}</strong><span>Seconds</span></div>
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
+          ${hostDockMarkup()}
           ${guestWelcomeMarkup()}
           ${roomPulseMarkup()}
           ${launchKitMarkup()}
           <p class="mode-note">${escapeHtml(mode.label)} mode: ${escapeHtml(mode.tone)}</p>
-          <div class="controls">
-            <button class="button hot" id="startGame">Start Game</button>
-            <button class="button secondary" id="addBot">Add Bot</button>
-            <button class="button ghost" id="backHome">Edit Setup</button>
-          </div>
         </div>
       </section>
     </section>
@@ -2592,6 +2611,7 @@ function bindEvents() {
   document.querySelector("#copyBrief")?.addEventListener("click", copyHostBrief);
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
+  document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);

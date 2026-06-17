@@ -31,6 +31,7 @@ Current prototype flow:
 - Magic Mix one-tap room composer
 - Zen Setup collapsed advanced tuning
 - Guest Welcome lobby handoff
+- Host Dock one-strip lobby controls
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -69,6 +70,7 @@ Current prototype flow:
 - Use Magic Mix to tune a room in one decision.
 - Launch from Zen Setup without touching advanced controls.
 - Give guests a copyable welcome before the first round.
+- Start, copy, add guests, and edit setup from one Host Dock.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.
