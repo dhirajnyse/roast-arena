@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Host Controls Polish",
-    note: "The lobby now turns room launch into one compact host command surface."
+    value: "Rematch Flow Polish",
+    note: "The final scoreboard now turns the next room into one calm command."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Live Room Prep",
-    note: "Room state, sync events, moderation, and environment needs are visible before backend work."
-  },
-  {
-    status: "Shipped",
     title: "Host Controls Polish",
     note: "The lobby now shows one command bar for launch, invite, guests, and setup."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Rematch Flow Polish",
-    note: "Make the second room as easy as the first without adding more decisions."
+    note: "The final scoreboard can apply or copy the next-room plan without rebuilding momentum."
+  },
+  {
+    status: "Next",
+    title: "Guest Join Polish",
+    note: "Make shared invites and guest arrival feel lighter before real multiplayer begins."
   }
 ];
 
@@ -420,14 +420,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Host Controls Polish",
-    text: "Keep the lobby launch surface simple as sharing, safety, and live-room cues grow.",
+    title: "Rematch Flow Polish",
+    text: "Compress the encore setup so hosts can run the next room without rebuilding momentum.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Rematch Flow Polish",
-    text: "Compress the encore setup so hosts can run the next room without rebuilding momentum.",
+    title: "Guest Join Polish",
+    text: "Make the static invite, arrival, and first-room handoff feel lighter before live sync.",
     status: "Planned"
   },
   {
@@ -1871,6 +1871,26 @@ function buildLiveBlueprintText() {
   ].join("\n");
 }
 
+function buildEncorePlanText() {
+  const plan = buildEncorePlan();
+  const setup = plan.setup;
+  return [
+    `Roast Arena rematch plan - ${state.roomCode}`,
+    `Plan: ${plan.label}`,
+    `Why: ${plan.cue}`,
+    "",
+    "Next room:",
+    `Mode: ${gameModes[setup.mode].label}`,
+    `Vibe: ${roomVibes[setup.roomVibe].label}`,
+    `World room: ${worldRooms[setup.worldRoom].label}`,
+    `Prompt flavor: ${promptFlavors[setup.promptFlavor].label}`,
+    `Comedy guard: ${comedyGuards[setup.roastLevel].label}`,
+    `Rounds: ${setup.maxRounds} x ${setup.timeLimit}s`,
+    "",
+    "Host move: apply rematch, keep players seated, start the room."
+  ].join("\n");
+}
+
 function buildLaunchRitualText() {
   const ritual = buildLaunchRitual();
   return [
@@ -2181,6 +2201,7 @@ function buildEncorePlan() {
   const average = averageDnaScore();
   const gap = scoreGap();
   const baseWorldRoom = state.worldRoom;
+  const leader = [...state.players].sort((a, b) => b.score - a.score)[0];
   let plan = {
     label: "Calm Rematch",
     cue: "Keep the same friendly table, reset the scores, and let everyone sharpen one line.",
@@ -2248,9 +2269,26 @@ function buildEncorePlan() {
       worldRoom: baseWorldRoom
     },
     chips: [
-      { label: "DNA Avg", value: average ? `${average}%` : "Fresh", cue: "Match signal" },
-      { label: "Next Mode", value: gameModes[plan.setup.mode].label, cue: `${plan.setup.maxRounds} rounds` },
-      { label: "Guard", value: comedyGuards[plan.setup.roastLevel].label, cue: `${plan.setup.timeLimit}s pace` }
+      {
+        label: "Signal",
+        value: average ? `${average}% DNA` : "Fresh room",
+        cue: gap ? `${gap} point gap` : "Even table"
+      },
+      {
+        label: "Keep Seats",
+        value: `${state.players.length} players`,
+        cue: `${state.roomCode} stays open`
+      },
+      {
+        label: "Next Setup",
+        value: gameModes[plan.setup.mode].label,
+        cue: `${plan.setup.maxRounds} rounds / ${plan.setup.timeLimit}s`
+      },
+      {
+        label: "Reset Tone",
+        value: comedyGuards[plan.setup.roastLevel].label,
+        cue: `${leader.name}'s win becomes warmup`
+      }
     ]
   };
 }
@@ -2261,10 +2299,13 @@ function encorePlanMarkup() {
     <div class="encore-plan" aria-label="Encore plan">
       <div class="encore-head">
         <div>
-          <span>Encore Plan</span>
+          <span>Rematch Command</span>
           <strong>${escapeHtml(plan.label)}</strong>
         </div>
-        <button class="button secondary" id="applyEncore">Apply Encore</button>
+        <div class="encore-actions">
+          <button class="button hot" id="applyEncore" type="button">Apply Rematch</button>
+          <button class="button secondary" id="copyEncorePlan" type="button">Copy Plan</button>
+        </div>
       </div>
       <p>${escapeHtml(plan.cue)}</p>
       <div class="encore-chips">
@@ -2441,6 +2482,17 @@ function copyLiveBlueprint() {
     return;
   }
   fallbackCopy(text, setLiveBlueprintStatus);
+}
+
+function copyEncorePlan() {
+  const text = buildEncorePlanText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setShareStatus("Rematch plan copied."))
+      .catch(() => fallbackCopy(text, setShareStatus));
+    return;
+  }
+  fallbackCopy(text, setShareStatus);
 }
 
 function copyHostBrief() {
@@ -3098,6 +3150,7 @@ function bindEvents() {
     setScreen("home");
   });
   document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
+  document.querySelector("#copyEncorePlan")?.addEventListener("click", copyEncorePlan);
   document.querySelector("#copyMoment")?.addEventListener("click", copyMomentClip);
   document.querySelector("#copyCreatorKit")?.addEventListener("click", copyCreatorShareKit);
   document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
@@ -3226,18 +3279,10 @@ function toggleFocusMode() {
 
 function applyEncorePlan() {
   const plan = buildEncorePlan();
-  state.selectedRecipeId = "custom";
-  state.mode = plan.setup.mode;
-  state.roomVibe = plan.setup.roomVibe;
-  state.worldRoom = plan.setup.worldRoom;
-  state.promptFlavor = plan.setup.promptFlavor;
-  state.roastLevel = plan.setup.roastLevel;
-  state.selectedJudgeId = plan.setup.selectedJudgeId;
-  state.maxRounds = plan.setup.maxRounds;
-  state.timeLimit = plan.setup.timeLimit;
-  state.timeLeft = plan.setup.timeLimit;
+  markCustomRecipe();
+  applySetup(plan.setup);
   resetGame();
-  state.notice = `${plan.label} applied.`;
+  state.notice = `${plan.label} applied. Scores reset, players stay seated.`;
   setScreen("lobby");
 }
 
