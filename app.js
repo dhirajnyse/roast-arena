@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Verdict Moment Polish",
-    note: "The winning reveal now has a tighter replay card and copy-ready next action."
+    value: "Scoreboard Polish",
+    note: "The final screen now has a cleaner champion command and share-ready closeout."
   },
   {
     label: "Prototype channel",
@@ -318,9 +318,14 @@ const buildLanes = [
     note: "Make the winning reveal feel more replayable while keeping the next action obvious."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Scoreboard Polish",
     note: "Make the final match closeout easier to share, replay, and restart."
+  },
+  {
+    status: "Next",
+    title: "Room Share Polish",
+    note: "Make shared room links feel more polished for guests before real multiplayer."
   }
 ];
 
@@ -425,14 +430,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Verdict Moment Polish",
-    text: "Make the winning reveal feel more replayable while keeping the next action obvious.",
+    title: "Scoreboard Polish",
+    text: "Make the final match closeout easier to share, replay, and restart.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Scoreboard Polish",
-    text: "Make the final match closeout easier to share, replay, and restart.",
+    title: "Room Share Polish",
+    text: "Make shared room links feel more polished for guests before real multiplayer.",
     status: "Planned"
   },
   {
@@ -1767,8 +1772,87 @@ function finalRecapMarkup() {
   `;
 }
 
+function topScoreRows() {
+  return [...state.players].sort((a, b) => b.score - a.score);
+}
+
+function bestHistoryMoment() {
+  if (!state.history.length) return null;
+  return state.history.reduce((best, item) => {
+    const dna = buildPunchlineDna(item.answer);
+    if (!best || dna.score > best.dna.score) {
+      return { ...item, dna };
+    }
+    return best;
+  }, null);
+}
+
+function buildFinalCommand(leader = topScoreRows()[0]) {
+  const sorted = topScoreRows();
+  const runner = sorted[1];
+  const gap = scoreGap();
+  const average = averageDnaScore();
+  const best = bestHistoryMoment();
+  const plan = buildEncorePlan();
+  const marginText = runner
+    ? gap > 0 ? `${gap} over ${runner.name}` : `Tied with ${runner.name}`
+    : `${leader.score} solo points`;
+  return {
+    title: `${leader.name}'s champion card`,
+    subtitle: `${leader.score} pts / ${currentMode().label} / ${average ? `${average}% room DNA` : "fresh room"}`,
+    copyLabel: "Copy Final Card",
+    chips: [
+      {
+        label: "Champion",
+        value: leader.name,
+        cue: `${leader.score} points`
+      },
+      {
+        label: "Margin",
+        value: marginText,
+        cue: gap ? "Clear win signal" : "Shared-table finish"
+      },
+      {
+        label: "Best Moment",
+        value: best ? `Round ${best.round}` : "Room warmup",
+        cue: best ? `${best.dna.score}% DNA by ${best.playerName}` : "No round history yet"
+      },
+      {
+        label: "Replay",
+        value: plan.label,
+        cue: `${plan.setup.maxRounds} rounds / ${plan.setup.timeLimit}s`
+      }
+    ]
+  };
+}
+
+function finalCommandMarkup(leader) {
+  const command = buildFinalCommand(leader);
+  return `
+    <div class="final-command" aria-label="Final command">
+      <div class="final-command-head">
+        <div>
+          <span>Final Command</span>
+          <strong>${escapeHtml(command.title)}</strong>
+          <p>${escapeHtml(command.subtitle)}</p>
+        </div>
+        <button class="button secondary" id="copyFinalCard" type="button">${escapeHtml(command.copyLabel)}</button>
+      </div>
+      <div class="final-command-grid">
+        ${command.chips.map((chip) => `
+          <span class="final-command-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function buildRecapText() {
-  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  const sorted = topScoreRows();
   const leader = sorted[0];
   const scoreLines = sorted.map((player, index) => `${index + 1}. ${player.name} - ${player.score} pts`);
   const roundLines = state.history.map((item) => {
@@ -1789,6 +1873,32 @@ function buildRecapText() {
     "Round winners:",
     ...roundLines
   ].join("\n");
+}
+
+function buildFinalCardText() {
+  const sorted = topScoreRows();
+  const leader = sorted[0];
+  const runner = sorted[1];
+  const gap = scoreGap();
+  const average = averageDnaScore();
+  const best = bestHistoryMoment();
+  const plan = buildEncorePlan();
+  const scoreLines = sorted.map((player, index) => `${index + 1}. ${player.name} - ${player.score} pts`);
+  return [
+    `Roast Arena final card - ${state.roomCode}`,
+    `Champion: ${leader.name} (${leader.score} pts)`,
+    runner ? `Margin: ${gap > 0 ? `${gap} over ${runner.name}` : `Tied with ${runner.name}`}` : `Margin: ${leader.score} solo points`,
+    `Room: ${currentWorldRoom().label} / ${currentComedyGuard().label} guard / ${currentVibe().label} vibe`,
+    `Mode: ${currentMode().label}`,
+    average ? `Room DNA: ${average}% average` : "Room DNA: fresh room",
+    best ? `Best moment: R${best.round} by ${best.playerName} - ${best.dna.score}% DNA (${best.dna.verdict})` : "Best moment: no round history yet",
+    best ? `Best line: "${best.answer}"` : "",
+    `Replay command: ${plan.label} (${gameModes[plan.setup.mode].label}, ${plan.setup.maxRounds} rounds, ${plan.setup.timeLimit}s)`,
+    `Replay link: ${buildInviteUrl()}`,
+    "",
+    "Final score:",
+    ...scoreLines
+  ].filter(Boolean).join("\n");
 }
 
 function buildMomentClipText() {
@@ -2712,6 +2822,17 @@ function copyRecap() {
   fallbackCopy(text, setShareStatus);
 }
 
+function copyFinalCard() {
+  const text = buildFinalCardText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setShareStatus("Final card copied."))
+      .catch(() => fallbackCopy(text, setShareStatus));
+    return;
+  }
+  fallbackCopy(text, setShareStatus);
+}
+
 function copyMomentClip() {
   const text = buildMomentClipText();
   if (navigator.clipboard && window.isSecureContext) {
@@ -3203,7 +3324,7 @@ function renderVerdict() {
 }
 
 function renderScoreboardScreen() {
-  const leader = [...state.players].sort((a, b) => b.score - a.score)[0];
+  const leader = topScoreRows()[0];
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
   const guard = currentComedyGuard();
@@ -3235,6 +3356,7 @@ function renderScoreboardScreen() {
               <strong>${leader.score} points</strong>
             </div>
           </div>
+          ${finalCommandMarkup(leader)}
           ${encorePlanMarkup()}
           ${finalRecapMarkup()}
           <div class="controls">
@@ -3479,6 +3601,7 @@ function bindEvents() {
   });
   document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
   document.querySelector("#copyEncorePlan")?.addEventListener("click", copyEncorePlan);
+  document.querySelector("#copyFinalCard")?.addEventListener("click", copyFinalCard);
   document.querySelector("#copyMoment")?.addEventListener("click", copyMomentClip);
   document.querySelector("#copyVerdictCard")?.addEventListener("click", copyVerdictCard);
   document.querySelector("#copyCreatorKit")?.addEventListener("click", copyCreatorShareKit);

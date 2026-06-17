@@ -75,6 +75,7 @@ Current prototype flow:
 - Copyable Moment Clip for each winning reveal
 - Encore Plan for one-tap rematch setup
 - Rematch Command for applying or copying the next-room plan
+- Final Command for champion cards and replay-ready closeouts
 - Final scoreboard with copyable party recap
 
 ## First Build Goals
@@ -127,6 +128,7 @@ Current prototype flow:
 - Review Punchline DNA for each winning answer.
 - Copy a Moment Clip from the verdict screen.
 - Track a scoreboard.
+- Copy a Final Command from the champion screen.
 - Apply an Encore Plan for the next room.
 - Copy or apply a Rematch Command without rebuilding the room.
 - Share a final recap after the match.
