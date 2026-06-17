@@ -70,6 +70,7 @@ Current prototype flow:
 - Anonymous voting
 - Vote Guide for faster anonymous picks
 - Judge verdict
+- Verdict Command for copy-ready winning reveals
 - Punchline DNA after each winning reveal
 - Copyable Moment Clip for each winning reveal
 - Encore Plan for one-tap rematch setup
@@ -122,6 +123,7 @@ Current prototype flow:
 - Use the Vote Guide to reward the cleanest anonymous answer.
 - Vote.
 - Show judge verdicts.
+- Copy a Verdict Command from the winning reveal.
 - Review Punchline DNA for each winning answer.
 - Copy a Moment Clip from the verdict screen.
 - Track a scoreboard.

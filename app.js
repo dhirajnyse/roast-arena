@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Vote Flow Polish",
-    note: "Anonymous voting now has a clearer guide and more scannable answer cards."
+    value: "Verdict Moment Polish",
+    note: "The winning reveal now has a tighter replay card and copy-ready next action."
   },
   {
     label: "Prototype channel",
@@ -313,9 +313,14 @@ const buildLanes = [
     note: "The voting moment now explains what to reward and makes each anonymous answer easier to scan."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Verdict Moment Polish",
     note: "Make the winning reveal feel more replayable while keeping the next action obvious."
+  },
+  {
+    status: "Next",
+    title: "Scoreboard Polish",
+    note: "Make the final match closeout easier to share, replay, and restart."
   }
 ];
 
@@ -420,14 +425,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Vote Flow Polish",
-    text: "Make anonymous voting faster, clearer, and more theatrical without adding work.",
+    title: "Verdict Moment Polish",
+    text: "Make the winning reveal feel more replayable while keeping the next action obvious.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Verdict Moment Polish",
-    text: "Make the winning reveal feel more replayable while keeping the next action obvious.",
+    title: "Scoreboard Polish",
+    text: "Make the final match closeout easier to share, replay, and restart.",
     status: "Planned"
   },
   {
@@ -1804,6 +1809,26 @@ function buildMomentClipText() {
   ].join("\n");
 }
 
+function buildVerdictCardText() {
+  const winner = state.winner;
+  if (!winner) return "";
+  const dna = buildPunchlineDna(winner.text);
+  const nextAction = state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round";
+  return [
+    `Roast Arena verdict card - ${state.roomCode}`,
+    `Winner: ${winner.playerName} (+${pointsForWin()} pts)`,
+    `Prompt: ${activePrompt()}`,
+    `Answer: "${winner.text}"`,
+    `Judge line: ${state.verdict}`,
+    `Punchline DNA: ${dna.score}% (${dna.verdict})`,
+    `Room: ${currentWorldRoom().label} / ${currentComedyGuard().label} guard`,
+    `Next move: ${nextAction}`,
+    `Replay link: ${buildInviteUrl()}`,
+    "",
+    "Replay the room. Keep it funny, not cruel."
+  ].join("\n");
+}
+
 function creatorCaptionLine(winner, dna = buildPunchlineDna(winner.text)) {
   return `Round ${state.round}: ${winner.playerName} won a ${dna.verdict.toLowerCase()} with "${winner.text}"`;
 }
@@ -2282,6 +2307,64 @@ function punchlineDnaMarkup(answer) {
   `;
 }
 
+function buildVerdictCommand(winner) {
+  const dna = buildPunchlineDna(winner.text);
+  const judge = currentJudge();
+  const nextAction = state.round >= state.maxRounds ? "Final Scoreboard" : "Next Round";
+  return {
+    title: `${winner.playerName}'s replay card`,
+    subtitle: `${dna.verdict} / ${dna.score}% DNA / ${pointsForWin()} pts`,
+    nextAction,
+    chips: [
+      {
+        label: "Winner",
+        value: winner.playerName,
+        cue: `+${pointsForWin()} pts banked`
+      },
+      {
+        label: "Judge Line",
+        value: judge.name,
+        cue: "Verdict is ready to share"
+      },
+      {
+        label: "Clip Hook",
+        value: dna.verdict,
+        cue: "Clean replay moment"
+      },
+      {
+        label: "Next Move",
+        value: nextAction,
+        cue: "Keep the room moving"
+      }
+    ]
+  };
+}
+
+function verdictCommandMarkup(winner) {
+  const command = buildVerdictCommand(winner);
+  return `
+    <div class="verdict-command" aria-label="Verdict command">
+      <div class="verdict-command-head">
+        <div>
+          <span>Verdict Command</span>
+          <strong>${escapeHtml(command.title)}</strong>
+          <p>${escapeHtml(command.subtitle)}</p>
+        </div>
+        <button class="button secondary" id="copyVerdictCard" type="button">Copy Card</button>
+      </div>
+      <div class="verdict-command-grid">
+        ${command.chips.map((chip) => `
+          <span class="verdict-command-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function buildVoteGuide() {
   const guard = currentComedyGuard();
   const mode = currentMode();
@@ -2634,6 +2717,17 @@ function copyMomentClip() {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(text)
       .then(() => setMomentStatus("Moment clip copied."))
+      .catch(() => fallbackCopy(text, setMomentStatus));
+    return;
+  }
+  fallbackCopy(text, setMomentStatus);
+}
+
+function copyVerdictCard() {
+  const text = buildVerdictCardText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setMomentStatus("Verdict card copied."))
       .catch(() => fallbackCopy(text, setMomentStatus));
     return;
   }
@@ -3091,6 +3185,7 @@ function renderVerdict() {
             <span>Winning answer</span>
             <p>${escapeHtml(winner.text)}</p>
           </div>
+          ${verdictCommandMarkup(winner)}
           ${punchlineDnaMarkup(winner.text)}
           ${momentClipMarkup(winner)}
           ${creatorShareKitMarkup(winner)}
@@ -3385,6 +3480,7 @@ function bindEvents() {
   document.querySelector("#applyEncore")?.addEventListener("click", applyEncorePlan);
   document.querySelector("#copyEncorePlan")?.addEventListener("click", copyEncorePlan);
   document.querySelector("#copyMoment")?.addEventListener("click", copyMomentClip);
+  document.querySelector("#copyVerdictCard")?.addEventListener("click", copyVerdictCard);
   document.querySelector("#copyCreatorKit")?.addEventListener("click", copyCreatorShareKit);
   document.querySelector("#copyRecap")?.addEventListener("click", copyRecap);
 
