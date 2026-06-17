@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Guest Join Polish",
-    note: "The lobby now gives guests a clearer arrival card before live multiplayer."
+    value: "Round Start Polish",
+    note: "The first answer screen now gives players a calmer launch cue before they type."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Rematch Flow Polish",
-    note: "The final scoreboard can apply or copy the next-room plan without rebuilding momentum."
-  },
-  {
-    status: "Shipped",
     title: "Guest Join Polish",
     note: "Guests now get a lighter arrival card with room code, first move, and safety cues."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Round Start Polish",
-    note: "Make the first answer screen feel instant once the room leaves the lobby."
+    note: "Players now see a compact start cue before writing the first answer."
+  },
+  {
+    status: "Next",
+    title: "Vote Flow Polish",
+    note: "Make anonymous voting faster, clearer, and more theatrical without adding work."
   }
 ];
 
@@ -420,14 +420,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Guest Join Polish",
-    text: "Make the static invite, arrival, and first-room handoff feel lighter before live sync.",
+    title: "Round Start Polish",
+    text: "Reduce the first-answer hesitation after guests arrive and the host starts the room.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Round Start Polish",
-    text: "Reduce the first-answer hesitation after guests arrive and the host starts the room.",
+    title: "Vote Flow Polish",
+    text: "Make anonymous voting faster, clearer, and more theatrical without adding work.",
     status: "Planned"
   },
   {
@@ -2054,6 +2054,70 @@ function buildRoastCompass() {
   };
 }
 
+function buildRoundStartCue() {
+  const compass = buildRoastCompass();
+  const mode = currentMode();
+  const guard = currentComedyGuard();
+  const worldRoom = currentWorldRoom();
+  const flavor = currentPromptFlavor();
+  return {
+    title: `Round ${state.round}: one clean first swing`,
+    subtitle: `${state.playerName}, start with a vivid image, then add one turn.`,
+    starter: compass.starter,
+    chips: [
+      {
+        label: "Read",
+        value: flavor.helper,
+        cue: "Find the funny object in the prompt"
+      },
+      {
+        label: "Aim",
+        value: worldRoom.label,
+        cue: worldRoom.safeAngle
+      },
+      {
+        label: "Turn",
+        value: mode.label,
+        cue: mode.tone
+      },
+      {
+        label: "Land",
+        value: guard.label,
+        cue: guard.cue
+      }
+    ]
+  };
+}
+
+function roundStartCueMarkup() {
+  const cue = buildRoundStartCue();
+  return `
+    <div class="round-start-cue" aria-label="Round start cue">
+      <div class="round-start-head">
+        <div>
+          <span>Round Start</span>
+          <strong>${escapeHtml(cue.title)}</strong>
+          <p>${escapeHtml(cue.subtitle)}</p>
+        </div>
+        <button class="button secondary" id="roundStartStarter" type="button">Use Starter</button>
+      </div>
+      <div class="round-start-starter">
+        <em>Starter</em>
+        <strong>${escapeHtml(cue.starter)}</strong>
+      </div>
+      <div class="round-start-steps">
+        ${cue.chips.map((chip) => `
+          <span class="round-start-step">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function firstTurnAssistMarkup() {
   const compass = buildRoastCompass();
   const starterSignal = buildLaughSignal(compass.starter);
@@ -2865,6 +2929,7 @@ function renderSubmit() {
           </div>
           <p class="room-cue">${escapeHtml(worldRoom.label)} room / ${escapeHtml(guard.label)} guard: ${escapeHtml(guard.cue)}</p>
           <div class="progress-track"><span class="progress-fill" id="timerFill" style="width: ${Math.max(0, (state.timeLeft / state.timeLimit) * 100)}%"></span></div>
+          ${roundStartCueMarkup()}
           <div class="answer-flow">
             ${firstTurnAssistMarkup()}
             <div class="answer-compose">
@@ -3233,6 +3298,7 @@ function bindEvents() {
   document.querySelector("#guestForm")?.addEventListener("submit", addGuest);
   document.querySelector("#submitAnswer")?.addEventListener("click", submitAnswer);
   document.querySelector("#toggleFocus")?.addEventListener("click", toggleFocusMode);
+  document.querySelector("#roundStartStarter")?.addEventListener("click", useCompassStarter);
   document.querySelector("#compassStarter")?.addEventListener("click", useCompassStarter);
   document.querySelector("#chaosAnswer")?.addEventListener("click", useChaosAnswer);
   document.querySelector("#skipToVote")?.addEventListener("click", () => submitAnswer("auto"));

@@ -62,6 +62,7 @@ Current prototype flow:
 - Copyable Host Brief for smoother room openings
 - Named guest roster controls for simulated rooms
 - Prompt submission
+- Round Start Cue for faster first answers
 - Roast Compass writing guidance and safe starter lines
 - Calm Focus Mode for a quieter writing screen
 - Live Laugh Signal for draft length, twist, and kindness
@@ -112,6 +113,7 @@ Current prototype flow:
 - Copy a host brief before starting the room.
 - Add named guests to shape the party roster.
 - Play short prompt rounds.
+- Use the Round Start Cue to begin with one clean first swing.
 - Use Roast Compass to shape a sharper, safer answer.
 - Switch into Calm Focus Mode while writing.
 - Watch the Laugh Signal while drafting.
