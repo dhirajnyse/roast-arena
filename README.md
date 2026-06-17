@@ -31,6 +31,7 @@ Current prototype flow:
 - Magic Mix one-tap room composer
 - Zen Setup collapsed advanced tuning
 - Guest Welcome lobby handoff
+- Guest Join Card for static room arrival
 - Host Dock one-strip lobby controls
 - Host Command readiness strip for calmer launch decisions
 - Prompt Preview first-round warmup
@@ -79,6 +80,7 @@ Current prototype flow:
 - Use Magic Mix to tune a room in one decision.
 - Launch from Zen Setup without touching advanced controls.
 - Give guests a copyable welcome before the first round.
+- Give guests a copyable join card with room code, first move, and safety cues.
 - Start, copy, add guests, and edit setup from one Host Dock.
 - Use Host Command to see launch readiness, invite, first prompt, and live shape in one strip.
 - Preview the first prompt and starter line from the lobby.

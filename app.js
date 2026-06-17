@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Rematch Flow Polish",
-    note: "The final scoreboard now turns the next room into one calm command."
+    value: "Guest Join Polish",
+    note: "The lobby now gives guests a clearer arrival card before live multiplayer."
   },
   {
     label: "Prototype channel",
@@ -304,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Host Controls Polish",
-    note: "The lobby now shows one command bar for launch, invite, guests, and setup."
-  },
-  {
-    status: "Shipped",
     title: "Rematch Flow Polish",
     note: "The final scoreboard can apply or copy the next-room plan without rebuilding momentum."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Guest Join Polish",
-    note: "Make shared invites and guest arrival feel lighter before real multiplayer begins."
+    note: "Guests now get a lighter arrival card with room code, first move, and safety cues."
+  },
+  {
+    status: "Next",
+    title: "Round Start Polish",
+    note: "Make the first answer screen feel instant once the room leaves the lobby."
   }
 ];
 
@@ -420,14 +420,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Rematch Flow Polish",
-    text: "Compress the encore setup so hosts can run the next room without rebuilding momentum.",
+    title: "Guest Join Polish",
+    text: "Make the static invite, arrival, and first-room handoff feel lighter before live sync.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Guest Join Polish",
-    text: "Make the static invite, arrival, and first-room handoff feel lighter before live sync.",
+    title: "Round Start Polish",
+    text: "Reduce the first-answer hesitation after guests arrive and the host starts the room.",
     status: "Planned"
   },
   {
@@ -1072,6 +1072,67 @@ function guestWelcomeMarkup() {
   `;
 }
 
+function buildGuestJoinCard() {
+  const guide = buildGlobalRoomGuide();
+  const flavor = currentPromptFlavor();
+  const mode = currentMode();
+  const guard = currentComedyGuard();
+  return {
+    title: `Join ${state.roomCode} calmly`,
+    subtitle: `${currentWorldRoom().label} room / ${roomPaceLabel()} ${mode.label} / ${guard.label} guard`,
+    note: "Open the link, keep the name simple, wait for the host, then write one clean answer.",
+    steps: [
+      {
+        label: "Room Code",
+        value: state.roomCode,
+        cue: "Shared link restores setup"
+      },
+      {
+        label: "Your Name",
+        value: state.playerName,
+        cue: "Host can adjust seats"
+      },
+      {
+        label: "First Move",
+        value: flavor.helper,
+        cue: "Read prompt, land one line"
+      },
+      {
+        label: "Room Rule",
+        value: guard.label,
+        cue: guide.safeLine
+      }
+    ]
+  };
+}
+
+function guestJoinCardMarkup() {
+  const card = buildGuestJoinCard();
+  return `
+    <div class="guest-join-card" aria-label="Guest join card">
+      <div class="guest-join-head">
+        <div>
+          <span>Guest Join</span>
+          <strong>${escapeHtml(card.title)}</strong>
+        </div>
+        <button class="button secondary" id="copyJoinCard" type="button">Copy Join Card</button>
+      </div>
+      <p>${escapeHtml(card.subtitle)}</p>
+      <div class="guest-join-steps">
+        ${card.steps.map((step) => `
+          <span class="guest-join-step">
+            <em>${escapeHtml(step.label)}</em>
+            <strong>${escapeHtml(step.value)}</strong>
+            <small>${escapeHtml(step.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(card.note)}</small>
+      <em id="joinCardStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
 function globalRoomGuideMarkup() {
   const guide = buildGlobalRoomGuide();
   return `
@@ -1535,12 +1596,15 @@ function hydrateInviteFromUrl() {
   state.playerName = cleanPlayerName(params.get("name"), state.playerName);
   state.roomVibe = validKey(roomVibes, params.get("vibe"), state.roomVibe);
   state.worldRoom = validKey(worldRooms, params.get("world"), state.worldRoom);
+  const hasModeParam = params.has("mode");
   state.mode = validKey(gameModes, params.get("mode"), state.mode);
   state.promptFlavor = validKey(promptFlavors, params.get("flavor"), state.promptFlavor);
   state.roastLevel = validKey(comedyGuards, params.get("guard"), state.roastLevel);
   state.selectedJudgeId = validJudgeId(params.get("judge"), state.selectedJudgeId);
-  state.maxRounds = clampNumber(params.get("rounds"), 1, 7, currentMode().rounds);
-  state.timeLimit = clampNumber(params.get("timer"), 20, 90, currentMode().timeLimit);
+  if (hasModeParam && !params.has("rounds")) state.maxRounds = currentMode().rounds;
+  if (hasModeParam && !params.has("timer")) state.timeLimit = currentMode().timeLimit;
+  if (params.has("rounds")) state.maxRounds = clampNumber(params.get("rounds"), 1, 7, currentMode().rounds);
+  if (params.has("timer")) state.timeLimit = clampNumber(params.get("timer"), 20, 90, currentMode().timeLimit);
   state.timeLeft = state.timeLimit;
   state.players = state.players.map((player) => (
     player.id === "you" ? { ...player, name: state.playerName, score: 0 } : { ...player, score: 0 }
@@ -1820,6 +1884,22 @@ function buildGuestWelcomeText() {
     ...welcome.signals.map((signal) => `${signal.label}: ${signal.value} - ${signal.cue}`),
     "",
     welcome.footer
+  ].join("\n");
+}
+
+function buildGuestJoinCardText() {
+  const card = buildGuestJoinCard();
+  const inviteUrl = buildInviteUrl();
+  return [
+    `Roast Arena guest join card - ${state.roomCode}`,
+    `Link: ${inviteUrl}`,
+    card.subtitle,
+    "",
+    card.note,
+    "",
+    ...card.steps.map((step) => `${step.label}: ${step.value} - ${step.cue}`),
+    "",
+    "Bring one clever answer. Keep it funny, not cruel."
   ].join("\n");
 }
 
@@ -2340,6 +2420,13 @@ function setWelcomeStatus(message) {
   if (dockStatus) dockStatus.textContent = message;
 }
 
+function setJoinCardStatus(message) {
+  const status = document.querySelector("#joinCardStatus");
+  if (status) status.textContent = message;
+  const inviteStatus = document.querySelector("#inviteStatus");
+  if (inviteStatus) inviteStatus.textContent = message;
+}
+
 function setPromptPreviewStatus(message) {
   const status = document.querySelector("#promptPreviewStatus");
   if (status) status.textContent = message;
@@ -2449,6 +2536,17 @@ function copyGuestWelcome() {
     return;
   }
   fallbackCopy(text, setWelcomeStatus);
+}
+
+function copyGuestJoinCard() {
+  const text = buildGuestJoinCardText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setJoinCardStatus("Guest join card copied."))
+      .catch(() => fallbackCopy(text, setJoinCardStatus));
+    return;
+  }
+  fallbackCopy(text, setJoinCardStatus);
 }
 
 function copyPromptPreview() {
@@ -2723,6 +2821,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${hostDockMarkup()}
+          ${guestJoinCardMarkup()}
           ${liveReadinessMarkup()}
           ${globalRoomGuideMarkup()}
           ${promptPreviewMarkup()}
@@ -3124,6 +3223,7 @@ function bindEvents() {
   document.querySelector("#copyInvite")?.addEventListener("click", copyInvite);
   document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
+  document.querySelector("#copyJoinCard")?.addEventListener("click", copyGuestJoinCard);
   document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
   document.querySelector("#copyGlobalGuide")?.addEventListener("click", copyGlobalRoomGuide);
   document.querySelector("#copyLiveBlueprint")?.addEventListener("click", copyLiveBlueprint);
