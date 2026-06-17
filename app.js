@@ -174,32 +174,56 @@ const worldRooms = {
   global: {
     label: "Global",
     cue: "Culture-neutral prompts for mixed rooms.",
-    hostLine: "Built for friends across cities, accents, and time zones."
+    hostLine: "Built for friends across cities, accents, and time zones.",
+    rhythm: "Warm, plain-language jokes that travel across cultures.",
+    safeAngle: "Use shared rituals like group chats, snacks, meetings, and celebrations.",
+    avoid: "Avoid local politics, accents, religion, or inside references.",
+    promptSeed: "Make the prompt funny even if nobody shares the same hometown."
   },
   dubai: {
     label: "Dubai",
     cue: "Luxury, ambition, brunch, and group chat diplomacy.",
-    hostLine: "Keep it glossy, clever, and just dramatic enough."
+    hostLine: "Keep it glossy, clever, and just dramatic enough.",
+    rhythm: "Polished ambition, luxury cues, brunch plans, and friendly drama.",
+    safeAngle: "Aim at over-planning, premium everything, and group-chat diplomacy.",
+    avoid: "Avoid stereotypes, class jokes, religion, or nationality punches.",
+    promptSeed: "Turn ordinary errands into five-star launches."
   },
   mumbai: {
     label: "Mumbai",
     cue: "Fast banter, family energy, hustle, and filmi timing.",
-    hostLine: "Make the room feel busy, warm, and dangerously witty."
+    hostLine: "Make the room feel busy, warm, and dangerously witty.",
+    rhythm: "Fast turns, family warmth, hustle energy, and dramatic timing.",
+    safeAngle: "Use traffic, group plans, snacks, and overconfident schedules.",
+    avoid: "Avoid language mockery, class jokes, religion, or regional digs.",
+    promptSeed: "Make every setup feel late but confident."
   },
   london: {
     label: "London",
     cue: "Dry wit, polite damage, and weather-based judgment.",
-    hostLine: "Understate the insult and let the silence do half the work."
+    hostLine: "Understate the insult and let the silence do half the work.",
+    rhythm: "Dry understatement, polite tension, weather jokes, and quiet judgment.",
+    safeAngle: "Use queues, transport delays, tea-level disappointment, and polite emails.",
+    avoid: "Avoid identity jokes, class digs, politics, or accent imitation.",
+    promptSeed: "Let the roast sound formal while the meaning gets sharper."
   },
   singapore: {
     label: "Singapore",
     cue: "Clean, sharp, efficient jokes with food-court precision.",
-    hostLine: "Keep it tidy, fast, and oddly devastating."
+    hostLine: "Keep it tidy, fast, and oddly devastating.",
+    rhythm: "Precise jokes, efficient setups, food-court timing, and clean structure.",
+    safeAngle: "Use queues, rules, hawker decisions, calendars, and tidy chaos.",
+    avoid: "Avoid ethnicity, language mockery, politics, or personal status jokes.",
+    promptSeed: "Make the punchline feel organized enough to pass inspection."
   },
   newyork: {
     label: "New York",
     cue: "Direct, fast, high-pressure punchlines.",
-    hostLine: "No warmup. Land the joke before the elevator closes."
+    hostLine: "No warmup. Land the joke before the elevator closes.",
+    rhythm: "Direct setups, fast opinions, big confidence, and city-pressure pace.",
+    safeAngle: "Use rent, commute logic, coffee urgency, and main-character schedules.",
+    avoid: "Avoid identity jokes, neighborhoods as insults, politics, or income digs.",
+    promptSeed: "Make the answer sound late, expensive, and somehow confident."
   }
 };
 
@@ -262,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Creator Share Kit",
-    note: "Winning moments now ship with a clean caption, clip summary, and replay invite."
+    value: "Global Rooms",
+    note: "World rooms now include compact country-safe hosting cues and prompt guidance."
   },
   {
     label: "Prototype channel",
@@ -280,18 +304,18 @@ const buildSignals = [
 const buildLanes = [
   {
     status: "Shipped",
-    title: "Answer Flow Polish",
-    note: "Starter, draft signal, focus mode, and submit now sit in one clearer writer flow."
-  },
-  {
-    status: "Shipped",
     title: "Creator Share Kit",
     note: "Verdicts now package a caption, clip summary, and replay invite in one copyable kit."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Global Rooms",
-    note: "Prepare country-safe room defaults and reusable prompt packs."
+    note: "Hosts now see local rhythm, safe angle, and avoid-zone cues before launch."
+  },
+  {
+    status: "Next",
+    title: "Real Multiplayer Prep",
+    note: "Keep live rooms, moderation, and environments simple before infrastructure arrives."
   }
 ];
 
@@ -396,20 +420,20 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Creator Share Kit",
-    text: "Package winning moments into captions, clip summaries, and replay invites.",
+    title: "Global Rooms",
+    text: "Turn country profiles into host cues, safer defaults, and reusable room guidance.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Global Rooms",
-    text: "Prepare country profiles, prompt packs, and audience-safe defaults for multi-country launch.",
+    title: "Real Multiplayer Prep",
+    text: "Prepare live room foundations without disturbing the static prototype loop.",
     status: "Planned"
   },
   {
     phase: "Scale",
-    title: "Real Multiplayer",
-    text: "Move from simulated rooms to live rooms, accounts, moderation, and deployment environments.",
+    title: "Multi-Country Prompt Packs",
+    text: "Grow reusable prompt defaults for more countries once the guide pattern proves useful.",
     status: "Research"
   },
   {
@@ -847,9 +871,28 @@ function roomPaceLabel() {
   return "Steady";
 }
 
+function buildGlobalRoomGuide() {
+  const worldRoom = currentWorldRoom();
+  const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
+  return {
+    title: `${worldRoom.label} Room Guide`,
+    subtitle: worldRoom.hostLine,
+    safeLine: `${guard.label} guard: ${worldRoom.safeAngle}`,
+    promptLine: `${flavor.label}: ${worldRoom.promptSeed}`,
+    avoidLine: worldRoom.avoid,
+    chips: [
+      { label: "Rhythm", value: worldRoom.label, cue: worldRoom.rhythm },
+      { label: "Safe Angle", value: guard.label, cue: worldRoom.safeAngle },
+      { label: "Prompt Seed", value: flavor.helper, cue: worldRoom.promptSeed }
+    ]
+  };
+}
+
 function buildRoomPassport() {
   const mix = currentMagicMix();
   const worldRoom = currentWorldRoom();
+  const guide = buildGlobalRoomGuide();
   const flavor = currentPromptFlavor();
   const guard = currentComedyGuard();
   const vibe = currentVibe();
@@ -862,7 +905,7 @@ function buildRoomPassport() {
     title: `${worldRoom.label} ${audience}`,
     readiness,
     headline: `${mix.label} / ${pace} ${mode.label}`,
-    summary: `${worldRoom.hostLine} ${guard.cue}`,
+    summary: `${worldRoom.hostLine} ${guide.safeLine}`,
     hostLine: vibe.hostCue,
     signals: [
       { label: "Audience", value: audience },
@@ -870,6 +913,7 @@ function buildRoomPassport() {
       { label: "Pace", value: `${state.maxRounds} x ${state.timeLimit}s` },
       { label: "Guard", value: guard.label },
       { label: "Prompts", value: flavor.label },
+      { label: "Safe Angle", value: "Local-safe" },
       { label: "Pulse", value: `${pulse.score}%` }
     ]
   };
@@ -914,20 +958,20 @@ function buildLaunchRitual() {
 
 function buildGuestWelcome() {
   const passport = buildRoomPassport();
-  const ritual = buildLaunchRitual();
   const vibe = currentVibe();
   const guard = currentComedyGuard();
   const flavor = currentPromptFlavor();
   const mode = currentMode();
+  const guide = buildGlobalRoomGuide();
   return {
     title: `${state.roomCode} is ${passport.readiness.toLowerCase()}`,
     subtitle: `${passport.title} / ${roomPaceLabel()} ${mode.label}`,
-    note: `${vibe.hostCue} ${guard.cue}`,
-    footer: "Make the joke travel: simple image, kind target, crisp ending.",
+    note: `${vibe.hostCue} ${guide.safeLine}`,
+    footer: `Avoid zone: ${guide.avoidLine}`,
     signals: [
-      { label: "Tone", value: vibe.label, cue: "Settle into the room before swinging." },
+      { label: "Room", value: guide.title, cue: guide.subtitle },
       { label: "Guard", value: guard.label, cue: guard.cue },
-      { label: "Prompt", value: flavor.label, cue: ritual.steps[2].text }
+      { label: "Prompt", value: flavor.label, cue: guide.promptLine }
     ]
   };
 }
@@ -955,6 +999,33 @@ function guestWelcomeMarkup() {
       </div>
       <small>${escapeHtml(welcome.footer)}</small>
       <em id="welcomeStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
+function globalRoomGuideMarkup() {
+  const guide = buildGlobalRoomGuide();
+  return `
+    <div class="global-room-guide" aria-label="Global room guide">
+      <div class="global-guide-head">
+        <div>
+          <span>Global Room Guide</span>
+          <strong>${escapeHtml(guide.title)}</strong>
+        </div>
+        <button class="button secondary" id="copyGlobalGuide" type="button">Copy Guide</button>
+      </div>
+      <p>${escapeHtml(guide.subtitle)}</p>
+      <div class="global-guide-grid">
+        ${guide.chips.map((chip) => `
+          <span class="global-guide-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(guide.avoidLine)}</small>
+      <em id="globalGuideStatus" class="share-status"></em>
     </div>
   `;
 }
@@ -1197,8 +1268,8 @@ function currentFlowCue() {
     return {
       label: "Flow Cue",
       title: `${pulse.label} room, ${state.players.length}/8 seats.`,
-      text: `${mode.label} pace is set. The room code is ready for guests.`,
-      metric: state.roomCode
+      text: `${currentWorldRoom().label} guide is ready. The room code is safe to share.`,
+      metric: currentWorldRoom().label
     };
   }
 
@@ -1645,6 +1716,20 @@ function buildPromptPreviewText() {
   ].join("\n");
 }
 
+function buildGlobalRoomGuideText() {
+  const guide = buildGlobalRoomGuide();
+  return [
+    `Global Room Guide - ${state.roomCode}`,
+    guide.title,
+    guide.subtitle,
+    "",
+    ...guide.chips.map((chip) => `${chip.label}: ${chip.value} - ${chip.cue}`),
+    "",
+    `Avoid zone: ${guide.avoidLine}`,
+    "Make the joke travel: clear image, kind target, crisp ending."
+  ].join("\n");
+}
+
 function buildLaunchRitualText() {
   const ritual = buildLaunchRitual();
   return [
@@ -1659,6 +1744,7 @@ function buildLaunchRitualText() {
 
 function buildRoomPassportText() {
   const passport = buildRoomPassport();
+  const guide = buildGlobalRoomGuide();
   return [
     `Room Passport - ${state.roomCode}`,
     `${passport.title}`,
@@ -1669,6 +1755,8 @@ function buildRoomPassportText() {
     "",
     `Host line: ${passport.hostLine}`,
     `Room note: ${passport.summary}`,
+    `Global guide: ${guide.safeLine}`,
+    `Avoid zone: ${guide.avoidLine}`,
     "",
     "Keep it funny, global, and kind."
   ].join("\n");
@@ -1682,6 +1770,7 @@ function buildHostBrief() {
   const mode = currentMode();
   const vibe = currentVibe();
   const worldRoom = currentWorldRoom();
+  const guide = buildGlobalRoomGuide();
   const flavor = currentPromptFlavor();
   const guard = currentComedyGuard();
   const judge = currentJudge();
@@ -1692,6 +1781,8 @@ function buildHostBrief() {
     `Room passport: ${passport.title}. ${passport.readiness}.`,
     `Launch ritual: ${ritual.opening}`,
     `Room style: ${recipe ? recipe.label : "Custom"} recipe, ${worldRoom.label} table, ${flavor.label} prompts.`,
+    `Global room guide: ${guide.safeLine}`,
+    `Avoid zone: ${guide.avoidLine}`,
     `Tone: ${vibe.label}. ${vibe.hostCue}`,
     `Guardrail: ${guard.label}. ${guard.cue}`,
     `Judge: ${judge.name}. ${mode.label} runs ${state.maxRounds} rounds, ${state.timeLimit}s each.`,
@@ -2070,6 +2161,11 @@ function setPromptPreviewStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setGlobalGuideStatus(message) {
+  const status = document.querySelector("#globalGuideStatus");
+  if (status) status.textContent = message;
+}
+
 function setBriefStatus(message) {
   const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
@@ -2175,6 +2271,17 @@ function copyPromptPreview() {
     return;
   }
   fallbackCopy(text, setPromptPreviewStatus);
+}
+
+function copyGlobalRoomGuide() {
+  const text = buildGlobalRoomGuideText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setGlobalGuideStatus("Global room guide copied."))
+      .catch(() => fallbackCopy(text, setGlobalGuideStatus));
+    return;
+  }
+  fallbackCopy(text, setGlobalGuideStatus);
 }
 
 function copyHostBrief() {
@@ -2405,6 +2512,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${hostDockMarkup()}
+          ${globalRoomGuideMarkup()}
           ${promptPreviewMarkup()}
           ${guestWelcomeMarkup()}
           ${roomPulseMarkup()}
@@ -2805,6 +2913,7 @@ function bindEvents() {
   document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
+  document.querySelector("#copyGlobalGuide")?.addEventListener("click", copyGlobalRoomGuide);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);

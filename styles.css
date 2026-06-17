@@ -1813,6 +1813,103 @@ h2 {
   font-weight: 900;
 }
 
+.global-room-guide {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(0, 215, 255, 0.3);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(236, 252, 255, 0.66), rgba(244, 255, 218, 0.54)),
+    linear-gradient(90deg, rgba(0, 215, 255, 0.14), rgba(183, 255, 42, 0.14), rgba(255, 225, 86, 0.16));
+  box-shadow: inset 0 -5px 0 rgba(0, 215, 255, 0.12);
+}
+
+.global-guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.global-guide-head span,
+.global-guide-chip em {
+  color: var(--violet);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.global-guide-head strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.global-room-guide > p,
+.global-room-guide > small {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.global-room-guide > p {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.global-room-guide > small {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.global-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.global-guide-chip {
+  min-width: 0;
+  min-height: 104px;
+  padding: 10px;
+  border: 1px solid rgba(54, 22, 128, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.global-guide-chip em,
+.global-guide-chip strong,
+.global-guide-chip small {
+  display: block;
+}
+
+.global-guide-chip strong {
+  margin-top: 5px;
+  color: var(--ink);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.global-guide-chip small {
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.global-room-guide .share-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .room-pulse p {
   margin: 0;
   color: var(--muted);
@@ -2961,6 +3058,7 @@ h2 {
   .dna-chips,
   .encore-chips,
   .flavor-grid,
+  .global-guide-grid,
   .host-dock,
   .host-dock-actions,
   .identity-grid,
@@ -2993,6 +3091,7 @@ h2 {
   .magic-mix-head,
   .quick-launch-head,
   .guest-welcome-head,
+  .global-guide-head,
   .prompt-preview-head,
   .roadmap-item-head,
   .share-kit-head,
@@ -3002,6 +3101,7 @@ h2 {
   }
 
   .prompt-preview-head .button,
+  .global-guide-head .button,
   .guest-welcome-head .button {
     width: 100%;
   }
