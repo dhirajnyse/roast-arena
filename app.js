@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Room Share Polish",
-    note: "Static room links now get a cleaner guest handoff before live multiplayer."
+    value: "Live Sync Prep",
+    note: "The lobby now carries a tiny sync contract before backend work begins."
   },
   {
     label: "Prototype channel",
@@ -328,9 +328,14 @@ const buildLanes = [
     note: "Make shared room links feel more polished for guests before real multiplayer."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Live Sync Prep",
     note: "Prepare the room loop for one shared state model before backend work."
+  },
+  {
+    status: "Next",
+    title: "Backend Room Skeleton",
+    note: "Start the smallest live room service once the sync contract stays stable."
   }
 ];
 
@@ -435,14 +440,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Room Share Polish",
-    text: "Make shared room links feel more polished for guests before real multiplayer.",
+    title: "Live Sync Prep",
+    text: "Prepare the room loop for one shared state model before backend work.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Live Sync Prep",
-    text: "Prepare the room loop for one shared state model before backend work.",
+    title: "Backend Room Skeleton",
+    text: "Start the smallest live room service once the sync contract stays stable.",
     status: "Planned"
   },
   {
@@ -914,6 +919,63 @@ function buildLiveReadiness() {
   };
 }
 
+function buildSyncContract() {
+  return {
+    title: "One room state, five events",
+    subtitle: `${state.roomCode} stays host-led in the UI, then server-owned when the backend arrives.`,
+    note: "Ship live sync only when this contract still feels smaller than the prototype.",
+    lanes: [
+      {
+        label: "Authority",
+        value: "Server owns",
+        cue: "Host actions become validated room events"
+      },
+      {
+        label: "Document",
+        value: "roomState",
+        cue: "Setup, seats, phase, round, answers, votes, verdict, history"
+      },
+      {
+        label: "Events",
+        value: "5 core",
+        cue: "start, submit, vote, reveal, rematch"
+      },
+      {
+        label: "Rollout",
+        value: "Staging first",
+        cue: "Prototype stays static until sync is calm"
+      }
+    ]
+  };
+}
+
+function syncContractMarkup() {
+  const contract = buildSyncContract();
+  return `
+    <div class="sync-contract" aria-label="Sync contract">
+      <div class="sync-contract-head">
+        <div>
+          <span>Sync Contract</span>
+          <strong>${escapeHtml(contract.title)}</strong>
+          <p>${escapeHtml(contract.subtitle)}</p>
+        </div>
+        <button class="button secondary" id="copySyncContract" type="button">Copy Contract</button>
+      </div>
+      <div class="sync-contract-grid">
+        ${contract.lanes.map((lane) => `
+          <span class="sync-contract-lane">
+            <em>${escapeHtml(lane.label)}</em>
+            <strong>${escapeHtml(lane.value)}</strong>
+            <small>${escapeHtml(lane.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(contract.note)}</small>
+      <em id="syncContractStatus" class="share-status"></em>
+    </div>
+  `;
+}
+
 function liveReadinessMarkup() {
   const readiness = buildLiveReadiness();
   return `
@@ -938,6 +1000,7 @@ function liveReadinessMarkup() {
           </span>
         `).join("")}
       </div>
+      ${syncContractMarkup()}
       <em id="liveBlueprintStatus" class="share-status"></em>
     </div>
   `;
@@ -2163,6 +2226,7 @@ function buildGlobalRoomGuideText() {
 
 function buildLiveBlueprintText() {
   const readiness = buildLiveReadiness();
+  const contract = buildSyncContract();
   return [
     `Live Room Blueprint - ${state.roomCode}`,
     `Status: ${readiness.label} / ${readiness.score}%`,
@@ -2178,7 +2242,28 @@ function buildLiveBlueprintText() {
     "4. verdict:reveal",
     "5. room:rematch",
     "",
+    "Sync contract:",
+    contract.title,
+    contract.subtitle,
+    ...contract.lanes.map((lane) => `${lane.label}: ${lane.value} - ${lane.cue}`),
+    contract.note,
+    "",
     "Keep the first live version calm: one room, one host, one shared state, one moderation path."
+  ].join("\n");
+}
+
+function buildSyncContractText() {
+  const contract = buildSyncContract();
+  return [
+    `Roast Arena sync contract - ${state.roomCode}`,
+    contract.title,
+    contract.subtitle,
+    "",
+    ...contract.lanes.map((lane) => `${lane.label}: ${lane.value} - ${lane.cue}`),
+    "",
+    contract.note,
+    "",
+    "Live sync rule: one room, one authoritative state, five validated events."
   ].join("\n");
 }
 
@@ -2874,6 +2959,13 @@ function setLiveBlueprintStatus(message) {
   if (status) status.textContent = message;
 }
 
+function setSyncContractStatus(message) {
+  const status = document.querySelector("#syncContractStatus");
+  if (status) status.textContent = message;
+  const blueprintStatus = document.querySelector("#liveBlueprintStatus");
+  if (blueprintStatus) blueprintStatus.textContent = message;
+}
+
 function setBriefStatus(message) {
   const status = document.querySelector("#briefStatus");
   if (status) status.textContent = message;
@@ -3045,6 +3137,17 @@ function copyLiveBlueprint() {
     return;
   }
   fallbackCopy(text, setLiveBlueprintStatus);
+}
+
+function copySyncContract() {
+  const text = buildSyncContractText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setSyncContractStatus("Sync contract copied."))
+      .catch(() => fallbackCopy(text, setSyncContractStatus));
+    return;
+  }
+  fallbackCopy(text, setSyncContractStatus);
 }
 
 function copyEncorePlan() {
@@ -3693,6 +3796,7 @@ function bindEvents() {
   document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
   document.querySelector("#copyGlobalGuide")?.addEventListener("click", copyGlobalRoomGuide);
   document.querySelector("#copyLiveBlueprint")?.addEventListener("click", copyLiveBlueprint);
+  document.querySelector("#copySyncContract")?.addEventListener("click", copySyncContract);
   document.querySelector("#copyPassport")?.addEventListener("click", copyRoomPassport);
   document.querySelector("#copyRitual")?.addEventListener("click", copyLaunchRitual);
   document.querySelector("#addBot")?.addEventListener("click", addBot);

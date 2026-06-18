@@ -42,6 +42,7 @@ Current prototype flow:
 - Creator Share Kit for clip-ready verdicts
 - Global Room Guide for country-safe hosting cues
 - Live Room Prep for future multiplayer handoff
+- Sync Contract for future live room state and event flow
 - Room Passport copyable launch summary
 - Calm Launch Ritual read-aloud host opener
 - Launch Kit unified host copy cockpit
@@ -96,6 +97,7 @@ Current prototype flow:
 - Copy a Creator Share Kit with caption, clip summary, and replay invite.
 - Use the Global Room Guide for local rhythm, safe angle, and avoid-zone cues.
 - Review Live Room Prep before moving simulated rooms to a backend.
+- Copy a Sync Contract before starting backend room work.
 - Use Launch Kit to copy the right host asset without hunting through the lobby.
 - Copy a Room Passport for a clean global-ready room summary.
 - Copy a Calm Launch Ritual to start the room smoothly.
