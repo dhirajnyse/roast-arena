@@ -1982,6 +1982,129 @@ h2 {
   font-weight: 900;
 }
 
+.room-share-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(255, 225, 86, 0.36);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 251, 238, 0.74), rgba(236, 252, 255, 0.58), rgba(255, 241, 252, 0.46)),
+    linear-gradient(90deg, rgba(255, 225, 86, 0.18), rgba(183, 255, 42, 0.16), rgba(0, 215, 255, 0.12));
+  box-shadow: inset 0 -5px 0 rgba(255, 43, 214, 0.1);
+}
+
+.room-share-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.room-share-head span,
+.room-share-chip em,
+.room-share-url span {
+  color: var(--violet);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.room-share-head strong,
+.room-share-chip strong,
+.room-share-url strong {
+  display: block;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.room-share-head strong {
+  margin-top: 3px;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.room-share-card > p,
+.room-share-card > small {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.room-share-card > p {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.room-share-card > small {
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.room-share-url {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(124, 77, 255, 0.16);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(183, 255, 42, 0.26), rgba(0, 215, 255, 0.14), rgba(255, 255, 255, 0.72));
+}
+
+.room-share-url strong {
+  font-size: 1rem;
+}
+
+.room-share-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.room-share-chip {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  min-height: 94px;
+  padding: 10px;
+  border: 1px solid rgba(54, 22, 128, 0.1);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.room-share-chip:nth-child(2) {
+  border-left-color: var(--cyan);
+}
+
+.room-share-chip:nth-child(3) {
+  border-left-color: var(--lime);
+}
+
+.room-share-chip:nth-child(4) {
+  border-left-color: var(--candy);
+}
+
+.room-share-chip small {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.room-share-card .share-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--success);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
 .guest-join-card {
   display: grid;
   gap: 12px;
@@ -3775,6 +3898,7 @@ h2 {
   .prompt-preview-grid,
   .quick-launch-grid,
   .recipe-grid,
+  .room-share-grid,
   .round-start-steps,
   .share-kit-head,
   .share-kit-assets,
@@ -3803,6 +3927,7 @@ h2 {
   .live-readiness-head,
   .prompt-preview-head,
   .roadmap-item-head,
+  .room-share-head,
   .round-start-head,
   .share-kit-head,
   .spark-row,
@@ -3816,6 +3941,7 @@ h2 {
   .global-guide-head .button,
   .guest-join-head .button,
   .live-readiness-head .button,
+  .room-share-head .button,
   .round-start-head .button,
   .guest-welcome-head .button {
     width: 100%;
@@ -3856,6 +3982,7 @@ h2 {
 
   .encore-head,
   .final-command-head,
+  .room-share-head,
   .verdict-command-head {
     grid-template-columns: 1fr;
   }

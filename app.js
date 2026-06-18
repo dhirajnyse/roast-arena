@@ -286,8 +286,8 @@ const projectScreens = ["build", "roadmap"];
 const buildSignals = [
   {
     label: "Current release",
-    value: "Scoreboard Polish",
-    note: "The final screen now has a cleaner champion command and share-ready closeout."
+    value: "Room Share Polish",
+    note: "Static room links now get a cleaner guest handoff before live multiplayer."
   },
   {
     label: "Prototype channel",
@@ -323,9 +323,14 @@ const buildLanes = [
     note: "Make the final match closeout easier to share, replay, and restart."
   },
   {
-    status: "Next",
+    status: "Shipped",
     title: "Room Share Polish",
     note: "Make shared room links feel more polished for guests before real multiplayer."
+  },
+  {
+    status: "Next",
+    title: "Live Sync Prep",
+    note: "Prepare the room loop for one shared state model before backend work."
   }
 ];
 
@@ -430,14 +435,14 @@ const recipeMagicMixMap = {
 const roadmapItems = [
   {
     phase: "Now",
-    title: "Scoreboard Polish",
-    text: "Make the final match closeout easier to share, replay, and restart.",
+    title: "Room Share Polish",
+    text: "Make shared room links feel more polished for guests before real multiplayer.",
     status: "Shipped"
   },
   {
     phase: "Next",
-    title: "Room Share Polish",
-    text: "Make shared room links feel more polished for guests before real multiplayer.",
+    title: "Live Sync Prep",
+    text: "Prepare the room loop for one shared state model before backend work.",
     status: "Planned"
   },
   {
@@ -1114,6 +1119,81 @@ function buildGuestJoinCard() {
       }
     ]
   };
+}
+
+function inviteUrlLabel() {
+  const inviteUrl = new URL(buildInviteUrl());
+  if (inviteUrl.hostname) {
+    return `${inviteUrl.hostname}${inviteUrl.pathname}?room=${state.roomCode}`;
+  }
+  return `${state.roomCode} share link`;
+}
+
+function buildRoomShareCard() {
+  const guide = buildGlobalRoomGuide();
+  const guard = currentComedyGuard();
+  const flavor = currentPromptFlavor();
+  const mode = currentMode();
+  const mix = currentMagicMix();
+  return {
+    title: `${state.roomCode} share link ready`,
+    subtitle: `${currentWorldRoom().label} guests get setup, safety, and first-move cues before the host starts.`,
+    label: inviteUrlLabel(),
+    note: "Temporary static handoff today; this can become live join state when multiplayer lands.",
+    chips: [
+      {
+        label: "Restores",
+        value: mix.label,
+        cue: `${mode.label} / ${state.maxRounds} rounds`
+      },
+      {
+        label: "Guest Sees",
+        value: state.roomCode,
+        cue: "Code stays first"
+      },
+      {
+        label: "Safety",
+        value: guard.label,
+        cue: guide.safeLine
+      },
+      {
+        label: "First Move",
+        value: flavor.label,
+        cue: flavor.helper
+      }
+    ]
+  };
+}
+
+function roomShareCardMarkup() {
+  const card = buildRoomShareCard();
+  return `
+    <div class="room-share-card" aria-label="Room share card">
+      <div class="room-share-head">
+        <div>
+          <span>Room Share</span>
+          <strong>${escapeHtml(card.title)}</strong>
+        </div>
+        <button class="button secondary" id="copyRoomShare" type="button">Copy Share Card</button>
+      </div>
+      <p>${escapeHtml(card.subtitle)}</p>
+      <div class="room-share-url">
+        <span>Guest Link</span>
+        <strong>${escapeHtml(card.label)}</strong>
+      </div>
+      <div class="room-share-grid">
+        ${card.chips.map((chip) => `
+          <span class="room-share-chip">
+            <em>${escapeHtml(chip.label)}</em>
+            <strong>${escapeHtml(chip.value)}</strong>
+            <small>${escapeHtml(chip.cue)}</small>
+          </span>
+        `).join("")}
+      </div>
+      <small>${escapeHtml(card.note)}</small>
+      <em id="roomShareStatus" class="share-status"></em>
+    </div>
+  `;
 }
 
 function guestJoinCardMarkup() {
@@ -2038,6 +2118,22 @@ function buildGuestJoinCardText() {
   ].join("\n");
 }
 
+function buildRoomShareCardText() {
+  const card = buildRoomShareCard();
+  const inviteUrl = buildInviteUrl();
+  return [
+    `Roast Arena room share card - ${state.roomCode}`,
+    `Link: ${inviteUrl}`,
+    card.subtitle,
+    "",
+    ...card.chips.map((chip) => `${chip.label}: ${chip.value} - ${chip.cue}`),
+    "",
+    card.note,
+    "",
+    "Open the link, read the room rule, and bring one clean answer."
+  ].join("\n");
+}
+
 function buildPromptPreviewText() {
   const preview = buildPromptPreview();
   return [
@@ -2755,6 +2851,14 @@ function setJoinCardStatus(message) {
   if (inviteStatus) inviteStatus.textContent = message;
 }
 
+function setRoomShareStatus(message) {
+  state.notice = message;
+  const status = document.querySelector("#roomShareStatus");
+  if (status) status.textContent = message;
+  const inviteStatus = document.querySelector("#inviteStatus");
+  if (inviteStatus) inviteStatus.textContent = message;
+}
+
 function setPromptPreviewStatus(message) {
   const status = document.querySelector("#promptPreviewStatus");
   if (status) status.textContent = message;
@@ -2897,6 +3001,17 @@ function copyGuestJoinCard() {
     return;
   }
   fallbackCopy(text, setJoinCardStatus);
+}
+
+function copyRoomShareCard() {
+  const text = buildRoomShareCardText();
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text)
+      .then(() => setRoomShareStatus("Room share card copied."))
+      .catch(() => fallbackCopy(text, setRoomShareStatus));
+    return;
+  }
+  fallbackCopy(text, setRoomShareStatus);
 }
 
 function copyPromptPreview() {
@@ -3171,6 +3286,7 @@ function renderLobby() {
             <div class="stat"><strong>${mode.points}</strong><span>Points/Win</span></div>
           </div>
           ${hostDockMarkup()}
+          ${roomShareCardMarkup()}
           ${guestJoinCardMarkup()}
           ${liveReadinessMarkup()}
           ${globalRoomGuideMarkup()}
@@ -3573,6 +3689,7 @@ function bindEvents() {
   document.querySelector("#copyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#dockCopyWelcome")?.addEventListener("click", copyGuestWelcome);
   document.querySelector("#copyJoinCard")?.addEventListener("click", copyGuestJoinCard);
+  document.querySelector("#copyRoomShare")?.addEventListener("click", copyRoomShareCard);
   document.querySelector("#copyPromptPreview")?.addEventListener("click", copyPromptPreview);
   document.querySelector("#copyGlobalGuide")?.addEventListener("click", copyGlobalRoomGuide);
   document.querySelector("#copyLiveBlueprint")?.addEventListener("click", copyLiveBlueprint);

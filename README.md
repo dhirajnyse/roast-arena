@@ -32,6 +32,7 @@ Current prototype flow:
 - Zen Setup collapsed advanced tuning
 - Guest Welcome lobby handoff
 - Guest Join Card for static room arrival
+- Room Share Card for polished static link handoff
 - Host Dock one-strip lobby controls
 - Host Command readiness strip for calmer launch decisions
 - Prompt Preview first-round warmup
@@ -85,6 +86,7 @@ Current prototype flow:
 - Launch from Zen Setup without touching advanced controls.
 - Give guests a copyable welcome before the first round.
 - Give guests a copyable join card with room code, first move, and safety cues.
+- Copy a Room Share Card with restored setup, safety, and first-move cues.
 - Start, copy, add guests, and edit setup from one Host Dock.
 - Use Host Command to see launch readiness, invite, first prompt, and live shape in one strip.
 - Preview the first prompt and starter line from the lobby.
